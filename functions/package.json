@@ -7,7 +7,4 @@
     "build": "echo 'No build step'",
     "start": "netlify dev"
   },
-  "dependencies": {
-    "cloudinary": "^1.32.0"
-  }
 }

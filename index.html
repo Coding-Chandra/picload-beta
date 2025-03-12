@@ -95,6 +95,18 @@
             color: #999;
             text-decoration: none;
         }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-message {
+            text-align: center;
+            color: #d9534f;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -113,8 +125,14 @@
             <button class="filter-btn" data-category="other">Other</button>
         </div>
         
+        <!-- Loading message -->
+        <div class="loading" id="loadingMessage">Loading photos...</div>
+        
+        <!-- Error message -->
+        <div class="error-message" id="errorMessage">Failed to load photos. Please try again later.</div>
+        
         <!-- Gallery section -->
-        <div class="gallery" id="photoGallery">
+        <div class="gallery" id="photoGallery" style="display: none;">
             <!-- Images will be loaded dynamically -->
         </div>
         
@@ -130,26 +148,50 @@
     </div>
     
     <script>
-        // Load images from localStorage (in a real app, this would come from Cloudinary API)
+        // Get DOM elements
+        const gallery = document.getElementById('photoGallery');
+        const emptyGallery = document.getElementById('emptyGallery');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // Load images from the Netlify function
         async function loadImages() {
-  try {
-    const response = await fetch('/netlify/functions/get-images');
-    if (!response.ok) {
-      throw new Error('Failed to fetch images');
-    }
-    
-    const images = await response.json();
-    // Render images to the gallery
-    displayImages(images);
-  } catch (error) {
-    console.error('Error loading images:', error);
-  }
-}
-
-// Call this function when the page loads
-document.addEventListener('DOMContentLoaded', loadImages);
-            
-            if (images.length === 0) {
+            try {
+                // Show loading message
+                loadingMessage.style.display = 'block';
+                gallery.style.display = 'none';
+                emptyGallery.style.display = 'none';
+                errorMessage.style.display = 'none';
+                
+                // Fetch images from the Netlify function
+                const response = await fetch('/netlify/functions/get-images');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch images');
+                }
+                
+                // Parse the JSON response
+                const images = await response.json();
+                
+                // Hide loading message
+                loadingMessage.style.display = 'none';
+                
+                // Display images
+                displayImages(images);
+            } catch (error) {
+                console.error('Error loading images:', error);
+                
+                // Hide loading message and show error
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                gallery.style.display = 'none';
+                emptyGallery.style.display = 'none';
+            }
+        }
+        
+        // Display images in the gallery
+        function displayImages(images) {
+            if (!images || images.length === 0) {
                 gallery.style.display = 'none';
                 emptyGallery.style.display = 'block';
                 return;
@@ -178,6 +220,25 @@ document.addEventListener('DOMContentLoaded', loadImages);
                 
                 gallery.appendChild(card);
             });
+            
+            // Apply current filter
+            applyCurrentFilter();
+        }
+        
+        // Apply the currently selected filter
+        function applyCurrentFilter() {
+            const activeButton = document.querySelector('.filter-btn.active');
+            if (activeButton) {
+                const category = activeButton.getAttribute('data-category');
+                
+                document.querySelectorAll('.photo-card').forEach(card => {
+                    if (category === 'all' || card.getAttribute('data-category') === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
         }
         
         // Initialize the page
@@ -194,16 +255,8 @@ document.addEventListener('DOMContentLoaded', loadImages);
                 // Add active class to clicked button
                 this.classList.add('active');
                 
-                const category = this.getAttribute('data-category');
-                
-                // Filter the gallery
-                document.querySelectorAll('.photo-card').forEach(card => {
-                    if (category === 'all' || card.getAttribute('data-category') === category) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                // Apply the filter
+                applyCurrentFilter();
             });
         });
     </script>

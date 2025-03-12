@@ -188,6 +188,13 @@
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             const successMessage = document.getElementById('successMessage');
+            const data = {
+                image: imagePreview.src,
+                title: title,
+                description: description,
+                category: category
+            };
+    console.log('Data being sent:', data);
             
             if (!imagePreview.src || !title || !category) {
                 alert('Please complete all required fields');

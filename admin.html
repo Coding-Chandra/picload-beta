@@ -239,6 +239,28 @@
                 
                 const result = await response.json();
                 
+                // Save image metadata to database
+                const imageData = {
+                    url: result.url,
+                    title: title,
+                    description: description,
+                    category: category
+                };
+                
+                // Save metadata to database
+                const metadataResponse = await fetch('/netlify/functions/save-image-metadata', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(imageData)
+                });
+                
+                if (!metadataResponse.ok) {
+                    throw new Error('Failed to save image metadata');
+                }
+                
                 // Show success message
                 successMessage.style.display = 'block';
                 setTimeout(() => {
@@ -250,17 +272,6 @@
                 imagePreview.style.display = 'none';
                 progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
-                
-                // Store the uploaded image info in localStorage for the gallery page
-                const existingImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
-                existingImages.push({
-                    url: result.url,
-                    title: title,
-                    description: description,
-                    category: category,
-                    date: new Date().toISOString()
-                });
-                localStorage.setItem('galleryImages', JSON.stringify(existingImages));
                 
             } catch (error) {
                 alert('Upload failed: ' + error.message);

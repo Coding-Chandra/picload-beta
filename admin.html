@@ -221,7 +221,7 @@
                 }, 300);
                 
                 // Make the API call to your Netlify function
-                const response = await fetch('/netlify/functions/upload-image', {
+                const response = await fetch('/netlify/functions/upload-image.js', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -248,7 +248,7 @@
                 };
                 
                 // Save metadata to database
-                const metadataResponse = await fetch('/netlify/functions/save-image-metadata', {
+                const metadataResponse = await fetch('/netlify/functions/save-image-metadata.js', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

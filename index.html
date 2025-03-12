@@ -131,10 +131,23 @@
     
     <script>
         // Load images from localStorage (in a real app, this would come from Cloudinary API)
-        function loadImages() {
-            const gallery = document.getElementById('photoGallery');
-            const emptyGallery = document.getElementById('emptyGallery');
-            const images = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+        async function loadImages() {
+  try {
+    const response = await fetch('/netlify/functions/get-images');
+    if (!response.ok) {
+      throw new Error('Failed to fetch images');
+    }
+    
+    const images = await response.json();
+    // Render images to the gallery
+    displayImages(images);
+  } catch (error) {
+    console.error('Error loading images:', error);
+  }
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', loadImages);
             
             if (images.length === 0) {
                 gallery.style.display = 'none';

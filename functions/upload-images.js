@@ -13,20 +13,16 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const { user } = context.clientContext;
-  if (!user) {
-    return { statusCode: 401, body: 'Unauthorized' };
-  }
-
   try {
     const data = JSON.parse(event.body);
-    const imageUrl = data.imageUrl; // Direct file URL instead of base64
-
-    if (!imageUrl) {
-      throw new Error('No image URL provided');
+    const imageData = data.image; // Get base64 image from frontend
+    
+    if (!imageData) {
+      throw new Error('No image data provided');
     }
 
-    const result = await cloudinary.uploader.upload(imageUrl, {
+    // Upload directly from base64
+    const result = await cloudinary.uploader.upload(imageData, {
       folder: 'photo-gallery',
       public_id: data.title.replace(/\s+/g, '-').toLowerCase(),
       tags: data.category,
@@ -41,6 +37,7 @@ exports.handler = async function(event, context) {
       })
     };
   } catch (error) {
+    console.error('Upload error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

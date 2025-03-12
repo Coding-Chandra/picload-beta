@@ -164,7 +164,7 @@
                 errorMessage.style.display = 'none';
                 
                 // Fetch images from the Netlify function
-                const response = await fetch('/netlify/functions/get-images');
+                const response = await fetch('/functions/get-images');
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch images');

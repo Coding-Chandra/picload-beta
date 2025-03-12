@@ -1,6 +1,4 @@
 const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
-const upload = multer(); // Middleware to handle file uploads
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,

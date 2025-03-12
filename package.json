@@ -9,5 +9,6 @@
   },
   "dependencies": {
   "cloudinary": "^1.32.0",
+  "faunadb": "^4.8.0"
 }
 }

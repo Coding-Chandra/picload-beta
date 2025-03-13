@@ -236,6 +236,10 @@
                     },
                     body: JSON.stringify(data)
                 });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Upload failed: ${errorText}`);
+                }
                 
                 clearInterval(interval);
                 progressBar.style.width = '100%';

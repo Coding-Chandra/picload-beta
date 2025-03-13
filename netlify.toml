@@ -1,7 +1,7 @@
 [build]
   functions = "functions"
   publish = "."
-  
+
 [dev]
   functions = "functions"
   publish = "."
@@ -10,6 +10,8 @@
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
+  conditions = { "Path" = [ "!/.netlify/functions/*" ] }  # Exclude functions
 
 [[plugins]]
 package = "@netlify/plugin-functions-install-core"

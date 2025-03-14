@@ -5,6 +5,11 @@ cloudinary.config({
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET
 });
+console.log('Cloudinary config:', {
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY ? '[set]' : undefined,
+  api_secret: process.env.API_SECRET ? '[set]' : undefined
+});
 
 exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {

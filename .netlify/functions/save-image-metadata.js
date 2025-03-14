@@ -1,4 +1,3 @@
-// functions/
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
@@ -18,18 +17,24 @@ exports.handler = async function(event, context) {
     const result = await client.query(
       q.Create(
         q.Collection('images'),
-        { data: { /* ... */ } }
+        {
+          data: {
+            url: data.url,
+            title: data.title,
+            description: data.description,
+            category: data.category,
+            date: new Date().toISOString()
+          }
+        }
       )
     );
     console.log('Query result:', result);
-    // ...
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ id: result.ref.id })
+    };
   } catch (error) {
     console.error('FaunaDB error:', error);
-    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
-  }
-};
-
-  } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

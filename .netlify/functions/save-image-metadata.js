@@ -5,6 +5,7 @@ const q = faunadb.query;
 const client = new faunadb.Client({
   secret: process.env.FAUNA_SECRET_KEY
 });
+console.log('FaunaDB secret:', process.env.FAUNA_SECRET_KEY ? '[set]' : 'undefined');
 
 exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {

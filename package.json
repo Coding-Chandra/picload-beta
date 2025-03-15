@@ -7,7 +7,6 @@
     "build": "echo 'No build step'",
     "start": "netlify dev"
   },
-{
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",
     "cloudinary": "^1.32.0"

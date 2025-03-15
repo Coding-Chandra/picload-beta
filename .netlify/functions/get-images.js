@@ -7,7 +7,6 @@ const supabase = createClient(
 );
 
 exports.handler = async (event) => {
-  // Allow only GET requests
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
@@ -17,15 +16,13 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Fetch all images from the 'images' table
     const { data, error } = await supabase
       .from('images')
       .select('*')
-      .order('date', { ascending: false }); // Sort by date, newest first
+      .order('date', { ascending: false });
 
     if (error) throw error;
 
-    // Return the image data
     return {
       statusCode: 200,
       body: JSON.stringify(data),

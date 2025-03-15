@@ -1,12 +1,10 @@
-const { Client, query: q } = require('faunadb');
+const { createClient } = require('@supabase/supabase-js');
 
-const client = new Client({
-  secret: process.env.FAUNA_SECRET_KEY,
-  domain: 'db.fauna.com',
-  scheme: 'https',
-  port: 443,
-});
-console.log('FAUNA_SECRET_KEY:', process.env.FAUNA_SECRET_KEY ? '[set]' : 'undefined');
+// Initialize Supabase client with environment variables
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -14,7 +12,10 @@ exports.handler = async (event) => {
   }
 
   try {
+    // Parse and destructure the incoming payload
     const { url, title, description, category } = JSON.parse(event.body);
+
+    // Validate required fields
     if (!url || !title || !category) {
       return {
         statusCode: 400,
@@ -22,27 +23,20 @@ exports.handler = async (event) => {
       };
     }
 
-    const result = await client.query(
-      q.Create(
-        q.Collection('images'),
-        {
-          data: {
-            url,
-            title,
-            description: description || '',
-            category,
-            date: q.Now(),
-          },
-        }
-      )
-    );
+    // Insert into Supabase 'images' table and select the inserted ID
+    const { data, error } = await supabase
+      .from('images')
+      .insert([{ url, title, description: description || '', category }])
+      .select('id');
 
+    if (error) throw error;
+
+    // Return the inserted ID
     return {
       statusCode: 200,
-      body: JSON.stringify({ id: result.ref.id }),
+      body: JSON.stringify({ id: data[0].id }),
     };
   } catch (error) {
-    console.error('FaunaDB error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Internal server error' }),

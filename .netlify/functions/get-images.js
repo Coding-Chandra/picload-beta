@@ -1,38 +1,30 @@
-const { createClient } = require('@supabase/supabase-js');
+// functions/
+const faunadb = require('faunadb');
+const q = faunadb.query;
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+const client = new faunadb.Client({
+  secret: process.env.FAUNA_SECRET_KEY
+});
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
-      headers: { 'Content-Type': 'application/json' },
-    };
-  }
-
+exports.handler = async function(event, context) {
   try {
-    const { data, error } = await supabase
-      .from('images')
-      .select('*')
-      .order('date', { ascending: false });
+    const result = await client.query(
+      q.Map(
+        q.Paginate(q.Documents(q.Collection('images'))),
+        q.Lambda(x => q.Get(x))
+      )
+    );
 
-    if (error) throw error;
-
+    const images = result.data.map(item => item.data);
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(images)
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal server error' }),
-      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

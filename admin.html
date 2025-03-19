@@ -228,7 +228,7 @@
                 }, 300);
                 
                 // Make the API call to your Netlify function
-                const response = await fetch('/.netlify/functions/upload-images', {
+                const response = await fetch('.netlify/functions/upload-images', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

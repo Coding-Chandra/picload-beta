@@ -1,62 +1,49 @@
 const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const upload = multer(); // Middleware to handle file uploads
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
+  api_secret: process.env.API_SECRET
 });
 
-exports.handler = async (event) => {
+exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  const { user } = context.clientContext;
+  if (!user) {
+    return { statusCode: 401, body: 'Unauthorized' };
+  }
+
   try {
-    // Parse the incoming payload from admin.html
-    const { image, title, description, category } = JSON.parse(event.body);
-    
-    // Validate image data
-    if (!image) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'No image data provided' }) };
+    const data = JSON.parse(event.body);
+    const imageUrl = data.imageUrl; // Direct file URL instead of base64
+
+    if (!imageUrl) {
+      throw new Error('No image URL provided');
     }
 
-    // Upload to Cloudinary
-    const uploadResult = await cloudinary.uploader.upload(image, {
+    const result = await cloudinary.uploader.upload(imageUrl, {
       folder: 'photo-gallery',
-      public_id: title.replace(/\s+/g, '-').toLowerCase(),
-      tags: category,
-      context: `alt=${title}|description=${description || ''}`,
+      public_id: data.title.replace(/\s+/g, '-').toLowerCase(),
+      tags: data.category,
+      context: `alt=${data.title}|description=${data.description}`
     });
 
-    // Call save-image-metadata directly
-    const metadataResponse = await fetch('https://picload.netlify.app/.netlify/functions/save-image-metadata', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: uploadResult.secure_url,
-        title,
-        description,
-        category,
-      }),
-    });
-
-    const metadata = await metadataResponse.json();
-    if (!metadataResponse.ok) {
-      throw new Error(metadata.error || 'Failed to save metadata');
-    }
-
-    // Return combined result
     return {
       statusCode: 200,
       body: JSON.stringify({
-        url: uploadResult.secure_url,
-        id: metadata.id,
-      }),
+        url: result.secure_url,
+        public_id: result.public_id
+      })
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal server error' }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

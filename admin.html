@@ -259,7 +259,7 @@
                 };
                 
                 // Save metadata to database
-                const metadataResponse = await fetch('/.netlify/functions/save-image-metadata', {
+                const metadataResponse = await fetch('.netlify/functions/save-image-metadata', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

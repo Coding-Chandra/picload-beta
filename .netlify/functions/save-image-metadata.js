@@ -1,45 +1,42 @@
-const { createClient } = require('@supabase/supabase-js');
+// functions/save-image-metadata.js
+const faunadb = require('faunadb');
+const q = faunadb.query;
 
-// Initialize Supabase client with environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+const client = new faunadb.Client({
+  secret: process.env.FAUNA_SECRET_KEY
+});
 
-exports.handler = async (event) => {
+exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
-    // Parse and destructure the incoming payload
-    const { url, title, description, category } = JSON.parse(event.body);
+    const data = JSON.parse(event.body);
+    
+    const result = await client.query(
+      q.Create(
+        q.Collection('images'),
+        {
+          data: {
+            url: data.url,
+            title: data.title,
+            description: data.description,
+            category: data.category,
+            date: new Date().toISOString()
+          }
+        }
+      )
+    );
 
-    // Validate required fields
-    if (!url || !title || !category) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required fields: url, title, or category' }),
-      };
-    }
-
-    // Insert into Supabase 'images' table and select the inserted ID
-    const { data, error } = await supabase
-      .from('images')
-      .insert([{ url, title, description: description || '', category }])
-      .select('id');
-
-    if (error) throw error;
-
-    // Return the inserted ID
     return {
       statusCode: 200,
-      body: JSON.stringify({ id: data[0].id }),
+      body: JSON.stringify({ id: result.ref.id })
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal server error' }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

@@ -1,13 +1,13 @@
-const faunadb = require('faunadb');
-const q = faunadb.query;
+const cloudinary = require('cloudinary').v2;
 
-const client = new faunadb.Client({
-  secret: process.env.FAUNA_SECRET_KEY,
-  domain: 'db.fauna.com',
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
 });
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'GET') {
+  if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method Not Allowed' }),
@@ -16,25 +16,30 @@ exports.handler = async (event) => {
   }
 
   try {
-    const result = await client.query(
-      q.Map(
-        q.Paginate(q.Documents(q.Collection('images'))),
-        q.Lambda('ref', q.Get(q.Var('ref')))
-      )
-    );
+    const { image, title, description, category } = JSON.parse(event.body);
+    if (!image || !title || !category) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing required fields: image, title, or category' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    }
 
-    const images = result.data.map(doc => ({
-      id: doc.ref.id,
-      url: doc.data.url,
-      title: doc.data.title,
-      description: doc.data.description,
-      category: doc.data.category,
-      date: doc.data.date,
-    }));
+    // Upload the image to Cloudinary with metadata stored in context
+    const result = await cloudinary.uploader.upload(image, {
+      folder: 'photo-gallery',
+      public_id: title.replace(/\s+/g, '-').toLowerCase(), // Creates a clean, unique ID
+      tags: [category], // Store category as a tag for easier filtering
+      context: `alt=${title}|description=${description || ''}|category=${category}|date=${new Date().toISOString()}`,
+    });
 
+    // Return the Cloudinary URL and public ID to the frontend
     return {
       statusCode: 200,
-      body: JSON.stringify(images),
+      body: JSON.stringify({
+        url: result.secure_url,
+        id: result.public_id, // Use Cloudinary's public_id as the identifier
+      }),
       headers: { 'Content-Type': 'application/json' },
     };
   } catch (error) {

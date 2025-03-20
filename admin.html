@@ -3,65 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Gallery Admin</title>
+    <title>Picload - Admin</title>
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script> <!-- Add Axios for simplicity -->
     <style>
-        /* Same styles as before */
-        body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; background-color: #f0f0f0; }
-        header { background-color: #222; color: white; padding: 1rem; text-align: center; }
-        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
-        .admin-panel { background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 2rem; }
-        .upload-form { display: flex; flex-direction: column; }
-        input, select, button, textarea { margin-bottom: 1rem; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; }
-        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
-        .preview-container { margin-top: 1rem; text-align: center; }
-        #imagePreview { max-width: 100%; max-height: 300px; display: none; margin: 0 auto; border: 1px solid #ddd; border-radius: 4px; }
-        .login-button { display: block; margin: 1rem auto; padding: 1rem 2rem; }
-        .back-link { display: block; margin-top: 1rem; text-align: center; }
-        .progress-container { width: 100%; background-color: #f1f1f1; border-radius: 4px; margin-bottom: 1rem; display: none; }
-        .progress-bar { width: 0%; height: 20px; background-color: #4CAF50; border-radius: 4px; transition: width 0.3s; }
-        .success-message { color: #4CAF50; text-align: center; margin: 1rem 0; display: none; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+        }
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 1rem 2rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header .branding a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+        header .branding a:hover {
+            color: #4CAF50;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .admin-panel {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input, textarea {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            padding: 0.75rem;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #388E3C, #4CAF50);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .preview-container {
+            margin: 1rem 0;
+            text-align: center;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        #imagePreview:hover {
+            transform: scale(1.02);
+        }
+        .login-button {
+            display: block;
+            margin: 1rem auto;
+            padding: 0.75rem 2rem;
+        }
+        .success-message {
+            color: #4CAF50;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 500;
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            background: #f1f1f1;
+            border-radius: 5px;
+            margin: 1rem 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .back-link {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .back-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link a:hover {
+            color: #388E3C;
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <h1>Photo Gallery Admin</h1>
+        <div class="branding">
+            <a href="/">Picload</a>
+        </div>
     </header>
     
     <div class="container">
+        <!-- Login Section -->
         <div class="admin-panel" id="loginSection">
             <h2>Admin Area</h2>
             <p>You need to log in to access the admin features.</p>
             <button class="login-button" onclick="netlifyIdentity.open()">Log in</button>
         </div>
         
+        <!-- Upload Section -->
         <div class="admin-panel" id="uploadSection" style="display: none;">
             <h2>Upload New Photo</h2>
+            
             <div class="success-message" id="successMessage">Photo uploaded successfully!</div>
+            
             <form class="upload-form" id="uploadForm">
                 <input type="file" id="photoUpload" accept="image/*" required>
+                
                 <div class="preview-container">
                     <img id="imagePreview" alt="Image Preview">
                 </div>
+                
                 <input type="text" id="photoTitle" placeholder="Photo Title" required>
                 <textarea id="photoDescription" placeholder="Photo Description" rows="3"></textarea>
-                <select id="photoCategory" required>
-                    <option value="">-- Select Category --</option>
-                    <option value="nature">Nature</option>
-                    <option value="urban">Urban</option>
-                    <option value="portrait">Portrait</option>
-                    <option value="other">Other</option>
-                </select>
+                <input type="text" id="photoTags" placeholder="Tags (comma-separated, e.g., nature, sunset)" required>
+                
                 <div class="progress-container" id="progressContainer">
                     <div class="progress-bar" id="progressBar"></div>
                 </div>
+                
                 <button type="submit" id="uploadButton">Upload Photo</button>
             </form>
+            
             <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
         </div>
         
-        <a href="index.html" class="back-link">Back to Gallery</a>
+        <div class="back-link">
+            <a href="index.html">Back to Gallery</a>
+        </div>
     </div>
     
     <script>
@@ -98,17 +224,18 @@
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             
-            const fileInput = document.getElementById('photoUpload');
-            const title = document.getElementById('photoTitle').value;
-            const description = document.getElementById('photoDescription').value;
-            const category = document.getElementById('photoCategory').value;
+            const imagePreview = document.getElementById('imagePreview');
+            const title = document.getElementById('photoTitle').value.trim();
+            const description = document.getElementById('photoDescription').value.trim();
+            const tagsInput = document.getElementById('photoTags').value.trim();
+            const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
             const uploadButton = document.getElementById('uploadButton');
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             const successMessage = document.getElementById('successMessage');
             
-            if (!fileInput.files[0] || !title || !category) {
-                alert('Please complete all required fields');
+            if (!imagePreview.src || !title || tags.length === 0) {
+                alert('Please complete all required fields: image, title, and at least one tag');
                 return;
             }
             
@@ -118,33 +245,12 @@
             
             try {
                 const token = netlifyIdentity.currentUser().token.access_token;
-                
-                // Step 1: Get signature from function
-                const signatureResponse = await fetch('.netlify/functions/upload-images', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ title, description, category }),
-                });
-                
-                if (!signatureResponse.ok) {
-                    throw new Error(`Signature fetch failed: ${await signatureResponse.text()}`);
-                }
-                
-                const { signature, timestamp, apiKey, cloudName, folder, publicId, tags, context } = await signatureResponse.json();
-                
-                // Step 2: Upload directly to Cloudinary
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                formData.append('api_key', apiKey);
-                formData.append('timestamp', timestamp);
-                formData.append('signature', signature);
-                formData.append('folder', folder);
-                formData.append('public_id', publicId);
-                formData.append('tags', tags.join(','));
-                formData.append('context', context);
+                const data = {
+                    image: imagePreview.src,
+                    title,
+                    description,
+                    tags
+                };
                 
                 let progress = 0;
                 const interval = setInterval(() => {
@@ -152,26 +258,35 @@
                     if (progress <= 90) progressBar.style.width = progress + '%';
                 }, 300);
                 
-                const uploadResponse = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData, {
-                    onUploadProgress: (progressEvent) => {
-                        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        if (percent <= 90) progressBar.style.width = percent + '%';
+                const response = await fetch('.netlify/functions/upload-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
+                    body: JSON.stringify(data)
                 });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Upload failed: ${errorText}`);
+                }
                 
                 clearInterval(interval);
                 progressBar.style.width = '100%';
+                
+                await response.json();
                 
                 successMessage.style.display = 'block';
                 setTimeout(() => successMessage.style.display = 'none', 3000);
                 
                 document.getElementById('uploadForm').reset();
-                document.getElementById('imagePreview').style.display = 'none';
+                imagePreview.style.display = 'none';
                 progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
             } catch (error) {
-                alert('Upload failed: ' + (error.message || 'Unknown error'));
-                console.error('Upload error:', error);
+                alert('Upload failed: ' + error.message);
+                console.error(error);
             } finally {
                 uploadButton.disabled = false;
                 uploadButton.textContent = 'Upload Photo';

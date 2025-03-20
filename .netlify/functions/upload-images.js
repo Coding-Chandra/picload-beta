@@ -1,6 +1,5 @@
 const cloudinary = require('cloudinary').v2;
 
-// Log configuration immediately
 const config = {
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
@@ -16,7 +15,6 @@ cloudinary.config(config);
 exports.handler = async (event) => {
   console.log('Function invoked:', { method: event.httpMethod, bodyLength: event.body ? event.body.length : 'NO BODY' });
 
-  // Handle OPTIONS preflight
   if (event.httpMethod === 'OPTIONS') {
     console.log('Returning OPTIONS response');
     return {
@@ -30,7 +28,6 @@ exports.handler = async (event) => {
     };
   }
 
-  // Enforce POST method
   if (event.httpMethod !== 'POST') {
     console.log('Method not allowed:', event.httpMethod);
     return {
@@ -41,13 +38,11 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Check if body exists
     if (!event.body) {
       console.log('No body provided');
       throw new Error('Request body is empty');
     }
 
-    // Parse body
     console.log('Raw body preview:', event.body.slice(0, 100) + '...');
     let data;
     try {
@@ -65,7 +60,6 @@ exports.handler = async (event) => {
       imagePreview: image ? `${image.slice(0, 50)}... (length: ${image.length})` : 'MISSING',
     });
 
-    // Validate required fields
     if (!image || !title || !category) {
       console.log('Validation failed: missing fields');
       return {
@@ -75,35 +69,27 @@ exports.handler = async (event) => {
       };
     }
 
-    // Validate base64 format
     const base64Regex = /^data:image\/[a-z]+;base64,/;
     if (!base64Regex.test(image)) {
       console.log('Invalid base64 format');
       throw new Error('Image must be a valid base64 string (e.g., "data:image/jpeg;base64,...")');
     }
 
-    // Prepare and log upload options
     const uploadOptions = {
       folder: 'photo-gallery',
-      public_id: title.replace(/\s+/g, '-').toLowerCase(),
+      public_id: `${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`, // Append timestamp to avoid duplicates
       tags: [category],
       context: `alt=${title}|description=${description || ''}|category=${category}|date=${new Date().toISOString()}`,
     };
     console.log('Upload options:', uploadOptions);
 
-    // Test Cloudinary connectivity with a simple call first
-    console.log('Testing Cloudinary API...');
-    await cloudinary.api.root_folders().catch((err) => {
-      console.error('Cloudinary API test failed:', err);
-      throw new Error(`Cloudinary API connectivity test failed: ${JSON.stringify(err)}`);
-    });
-    console.log('Cloudinary API test succeeded');
-
-    // Perform upload
     console.log('Starting Cloudinary upload...');
     const result = await cloudinary.uploader.upload(image, uploadOptions).catch((err) => {
-      console.error('Upload failed:', err);
-      throw new Error(`Cloudinary upload error: ${JSON.stringify(err)}`);
+      console.error('Upload error:', err);
+      if (err.http_code === 429 || err.message.includes('limit')) {
+        throw new Error('Cloudinary rate limit exceeded. Please try again later or check your plan.');
+      }
+      throw new Error(`Cloudinary upload failed: ${JSON.stringify(err)}`);
     });
 
     console.log('Upload result:', {

@@ -144,7 +144,6 @@
         // Check if user is logged in
         netlifyIdentity.on('init', user => {
             if (user) {
-                // User is logged in
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('uploadSection').style.display = 'block';
             }
@@ -188,13 +187,6 @@
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             const successMessage = document.getElementById('successMessage');
-            const data = {
-                image: imagePreview.src,
-                title: title,
-                description: description,
-                category: category
-            };
-    console.log('Data being sent:', data);
             
             if (!imagePreview.src || !title || !category) {
                 alert('Please complete all required fields');
@@ -218,7 +210,7 @@
                     category: category
                 };
                 
-                // Simulate progress (in real usage, you'd use fetch with upload progress)
+                // Simulate progress
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 10;
@@ -227,7 +219,7 @@
                     }
                 }, 300);
                 
-                // Make the API call to your Netlify function
+                // Upload to Cloudinary via Netlify function
                 const response = await fetch('.netlify/functions/upload-images', {
                     method: 'POST',
                     headers: {
@@ -236,6 +228,7 @@
                     },
                     body: JSON.stringify(data)
                 });
+                
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Upload failed: ${errorText}`);
@@ -244,33 +237,7 @@
                 clearInterval(interval);
                 progressBar.style.width = '100%';
                 
-                if (!response.ok) {
-                    throw new Error('Upload failed');
-                }
-                
                 const result = await response.json();
-                
-                // Save image metadata to database
-                const imageData = {
-                    url: result.url,
-                    title: title,
-                    description: description,
-                    category: category
-                };
-                
-                // Save metadata to database
-                const metadataResponse = await fetch('.netlify/functions/save-image-metadata', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(imageData)
-                });
-                
-                if (!metadataResponse.ok) {
-                    throw new Error('Failed to save image metadata');
-                }
                 
                 // Show success message
                 successMessage.style.display = 'block';

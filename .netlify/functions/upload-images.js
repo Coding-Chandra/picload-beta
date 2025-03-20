@@ -1,24 +1,24 @@
 const cloudinary = require('cloudinary').v2;
 
-// Log configuration to verify environment variables
+// Log configuration immediately
 const config = {
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET,
 };
 console.log('Cloudinary config:', {
-  cloud_name: config.cloud_name,
+  cloud_name: config.cloud_name || 'MISSING',
   api_key: config.api_key ? '[REDACTED]' : 'MISSING',
   api_secret: config.api_secret ? '[REDACTED]' : 'MISSING',
 });
 cloudinary.config(config);
 
 exports.handler = async (event) => {
-  console.log('Function invoked with method:', event.httpMethod);
+  console.log('Function invoked:', { method: event.httpMethod, bodyLength: event.body ? event.body.length : 'NO BODY' });
 
-  // Handle OPTIONS preflight request
+  // Handle OPTIONS preflight
   if (event.httpMethod === 'OPTIONS') {
-    console.log('Handling OPTIONS request');
+    console.log('Returning OPTIONS response');
     return {
       statusCode: 200,
       headers: {
@@ -30,9 +30,9 @@ exports.handler = async (event) => {
     };
   }
 
-  // Handle POST request
+  // Enforce POST method
   if (event.httpMethod !== 'POST') {
-    console.log('Invalid method detected');
+    console.log('Method not allowed:', event.httpMethod);
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method Not Allowed' }),
@@ -41,25 +41,33 @@ exports.handler = async (event) => {
   }
 
   try {
-    console.log('Raw event body:', event.body);
-    let parsedBody;
-    try {
-      parsedBody = JSON.parse(event.body);
-    } catch (parseError) {
-      console.error('Failed to parse event body:', parseError);
-      throw new Error(`Body parsing failed: ${parseError.message}`);
+    // Check if body exists
+    if (!event.body) {
+      console.log('No body provided');
+      throw new Error('Request body is empty');
     }
 
-    const { image, title, description, category } = parsedBody;
-    console.log('Parsed body:', {
-      title,
-      description,
-      category,
+    // Parse body
+    console.log('Raw body preview:', event.body.slice(0, 100) + '...');
+    let data;
+    try {
+      data = JSON.parse(event.body);
+    } catch (parseError) {
+      console.error('Body parsing failed:', parseError);
+      throw new Error(`Invalid JSON: ${parseError.message}`);
+    }
+
+    const { image, title, description, category } = data;
+    console.log('Parsed data:', {
+      title: title || 'MISSING',
+      description: description || 'NONE',
+      category: category || 'MISSING',
       imagePreview: image ? `${image.slice(0, 50)}... (length: ${image.length})` : 'MISSING',
     });
 
+    // Validate required fields
     if (!image || !title || !category) {
-      console.log('Missing required fields');
+      console.log('Validation failed: missing fields');
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Missing required fields: image, title, or category' }),
@@ -67,13 +75,14 @@ exports.handler = async (event) => {
       };
     }
 
-    // Validate image format (basic check for base64)
-    if (!image.startsWith('data:image/')) {
-      console.log('Invalid image format detected');
-      throw new Error('Image must be a valid base64 string starting with "data:image/"');
+    // Validate base64 format
+    const base64Regex = /^data:image\/[a-z]+;base64,/;
+    if (!base64Regex.test(image)) {
+      console.log('Invalid base64 format');
+      throw new Error('Image must be a valid base64 string (e.g., "data:image/jpeg;base64,...")');
     }
 
-    console.log('Attempting Cloudinary upload...');
+    // Prepare and log upload options
     const uploadOptions = {
       folder: 'photo-gallery',
       public_id: title.replace(/\s+/g, '-').toLowerCase(),
@@ -82,12 +91,25 @@ exports.handler = async (event) => {
     };
     console.log('Upload options:', uploadOptions);
 
+    // Test Cloudinary connectivity with a simple call first
+    console.log('Testing Cloudinary API...');
+    await cloudinary.api.root_folders().catch((err) => {
+      console.error('Cloudinary API test failed:', err);
+      throw new Error(`Cloudinary API connectivity test failed: ${JSON.stringify(err)}`);
+    });
+    console.log('Cloudinary API test succeeded');
+
+    // Perform upload
+    console.log('Starting Cloudinary upload...');
     const result = await cloudinary.uploader.upload(image, uploadOptions).catch((err) => {
-      console.error('Cloudinary upload error:', err);
-      throw new Error(`Cloudinary upload failed: ${JSON.stringify(err)}`);
+      console.error('Upload failed:', err);
+      throw new Error(`Cloudinary upload error: ${JSON.stringify(err)}`);
     });
 
-    console.log('Upload successful, result:', result);
+    console.log('Upload result:', {
+      url: result.secure_url,
+      id: result.public_id,
+    });
 
     return {
       statusCode: 200,
@@ -98,7 +120,7 @@ exports.handler = async (event) => {
       }),
     };
   } catch (error) {
-    console.error('Error in upload-images:', error);
+    console.error('Full error in upload-images:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({

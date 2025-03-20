@@ -7,7 +7,21 @@ cloudinary.config({
 });
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
+  // Handle OPTIONS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*', // Adjust to your domain in production
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+      body: '',
+    };
+  }
+
+  // Handle GET request
+  if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method Not Allowed' }),
@@ -16,31 +30,27 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { image, title, description, category } = JSON.parse(event.body);
-    if (!image || !title || !category) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required fields: image, title, or category' }),
-        headers: { 'Content-Type': 'application/json' },
-      };
-    }
-
-    // Upload the image to Cloudinary with metadata stored in context
-    const result = await cloudinary.uploader.upload(image, {
-      folder: 'photo-gallery',
-      public_id: title.replace(/\s+/g, '-').toLowerCase(), // Creates a clean, unique ID
-      tags: [category], // Store category as a tag for easier filtering
-      context: `alt=${title}|description=${description || ''}|category=${category}|date=${new Date().toISOString()}`,
+    const result = await cloudinary.api.resources({
+      resource_type: 'image',
+      prefix: 'photo-gallery',
+      max_results: 100, // Adjust as needed
+      context: true, // Include custom metadata
+      tags: true,
     });
 
-    // Return the Cloudinary URL and public ID to the frontend
+    const images = result.resources.map((resource) => ({
+      id: resource.public_id,
+      url: resource.secure_url,
+      title: resource.context?.custom?.alt || resource.public_id,
+      description: resource.context?.custom?.description || '',
+      category: resource.context?.custom?.category || resource.tags[0] || '',
+      date: resource.context?.custom?.date || resource.created_at,
+    }));
+
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        url: result.secure_url,
-        id: result.public_id, // Use Cloudinary's public_id as the identifier
-      }),
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(images),
     };
   } catch (error) {
     return {

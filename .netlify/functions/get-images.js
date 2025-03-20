@@ -50,13 +50,13 @@ exports.handler = async (event) => {
     console.log('Cloudinary response:', JSON.stringify(result, null, 2));
 
     const images = result.resources.map((resource) => ({
-      id: resource.public_id,
-      url: resource.secure_url,
-      title: resource.context?.custom?.alt || resource.public_id,
-      description: resource.context?.custom?.description || '',
-      category: resource.context?.custom?.category || resource.tags[0] || '',
-      date: resource.context?.custom?.date || resource.created_at,
-    }));
+    id: resource.public_id,
+    url: resource.secure_url,
+    title: resource.context?.custom?.alt || resource.public_id,
+    description: resource.context?.custom?.description || '',
+    tags: resource.tags || (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
+    date: resource.context?.custom?.date || resource.created_at,
+}));
 
     return {
       statusCode: 200,

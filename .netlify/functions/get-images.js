@@ -12,7 +12,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Adjust to your domain in production
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
@@ -30,13 +30,15 @@ exports.handler = async (event) => {
   }
 
   try {
+    console.log('Fetching images from Cloudinary...');
     const result = await cloudinary.api.resources({
       resource_type: 'image',
       prefix: 'photo-gallery',
-      max_results: 100, // Adjust as needed
-      context: true, // Include custom metadata
+      max_results: 100,
+      context: true,
       tags: true,
     });
+    console.log('Cloudinary response:', result);
 
     const images = result.resources.map((resource) => ({
       id: resource.public_id,
@@ -53,9 +55,14 @@ exports.handler = async (event) => {
       body: JSON.stringify(images),
     };
   } catch (error) {
+    console.error('Error in get-images:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Internal server error' }),
+      body: JSON.stringify({
+        error: 'Internal server error',
+        details: error.message || 'No error message available',
+        stack: error.stack || 'No stack trace available',
+      }),
       headers: { 'Content-Type': 'application/json' },
     };
   }

@@ -56,6 +56,7 @@ exports.handler = async (event) => {
     description: resource.context?.custom?.description || '',
     tags: resource.tags || (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
     date: resource.context?.custom?.date || resource.created_at,
+    downloads: resource.context?.custom?.downloads || 0, // Add downloads field
 }));
 
     return {

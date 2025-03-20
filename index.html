@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Photo Gallery</title>
+    <title>Picload - Photo Gallery</title>
     <style>
         * {
             margin: 0;
@@ -19,21 +19,45 @@
         header {
             background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            padding: 2rem;
+            padding: 1rem 2rem;
             text-align: center;
             position: sticky;
             top: 0;
             z-index: 10;
             backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        header h1 {
-            font-size: 2.5rem;
+        header .branding a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 2rem;
             font-weight: 600;
             letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+        header .branding a:hover {
+            color: #4CAF50;
+        }
+        header .admin-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: 1px solid #4CAF50;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        header .admin-link a:hover {
+            background: #4CAF50;
+            color: #fff;
         }
         header p {
             font-size: 1.1rem;
             opacity: 0.8;
+            margin-top: 0.5rem;
         }
         .container {
             max-width: 1400px;
@@ -116,6 +140,7 @@
             border-radius: 10px;
             font-weight: 500;
             transition: background 0.3s ease;
+            cursor: pointer;
         }
         .download-btn:hover {
             background: linear-gradient(45deg, #388E3C, #4CAF50);
@@ -144,26 +169,17 @@
         .empty-gallery p {
             color: #777;
         }
-        .admin-link {
-            text-align: center;
-            padding: 1rem;
-        }
-        .admin-link a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        .admin-link a:hover {
-            color: #388E3C;
-        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <h1>My Photo Gallery</h1>
-        <p>Explore and download stunning high-quality images</p>
+        <div class="branding">
+            <a href="/">Picload</a>
+        </div>
+        <div class="admin-link">
+            <a href="admin.html">Admin Area</a>
+        </div>
     </header>
     
     <div class="container">
@@ -184,10 +200,6 @@
             <h2>No Photos Yet</h2>
             <p>Add some images in the admin area to get started.</p>
         </div>
-    </div>
-    
-    <div class="admin-link">
-        <a href="admin.html">Admin Area</a>
     </div>
     
     <script>
@@ -238,13 +250,40 @@
                     <div class="photo-info">
                         <h3>${image.title}</h3>
                         <p>${image.description || 'No description'}</p>
-                        <a href="${image.url}" class="download-btn" download="${image.title}">Download</a>
+                        <a class="download-btn" data-url="${image.url}" data-title="${image.title}">Download</a>
                     </div>
                 `;
                 gallery.appendChild(card);
             });
 
+            // Attach download event listeners
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const url = btn.getAttribute('data-url');
+                    const title = btn.getAttribute('data-title');
+                    downloadImage(url, title);
+                });
+            });
+
             applyCurrentFilter();
+        }
+
+        async function downloadImage(url, title) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${title}.jpg`; // Force download with title as filename
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Failed to download image. Please try again.');
+            }
         }
 
         function applyCurrentFilter() {

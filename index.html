@@ -169,6 +169,27 @@
         .empty-gallery p {
             color: #777;
         }
+
+        .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.popup.active {
+    opacity: 1;
+}
+.popup-content {
+    background: #fff;
+    padding: 2rem;
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -190,6 +211,28 @@
             <button class="filter-btn" data-category="portrait">Portrait</button>
             <button class="filter-btn" data-category="other">Other</button>
         </div>
+
+        <div class="popup" id="imagePopup" style="display: none;">
+    <div class="popup-content">
+        <span class="close-btn" id="closePopup">&times;</span>
+        <img id="popupImage" src="" alt="">
+        <h3 id="popupTitle"></h3>
+        <p id="popupDescription"></p>
+        <div class="details">
+            <p>File Size: <span id="popupSize"></span></p>
+            <p>Resolution: <span id="popupResolution"></span></p>
+            <label>Download Custom Resolution:
+                <select id="resolutionSelect">
+                    <option value="original">Original</option>
+                    <option value="800x600">800x600</option>
+                    <option value="1280x720">1280x720</option>
+                    <option value="1920x1080">1920x1080</option>
+                </select>
+            </label>
+            <button id="downloadCustomBtn">Download</button>
+        </div>
+    </div>
+</div>
         
         <div class="loading" id="loadingMessage">Loading photos...</div>
         <div class="error-message" id="errorMessage" style="display: none;">Failed to load photos. Please try again later.</div>

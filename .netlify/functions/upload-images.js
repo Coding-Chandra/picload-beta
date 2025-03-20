@@ -7,47 +7,38 @@ cloudinary.config({
 });
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
+  if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
-    const { image, title, description, category } = JSON.parse(event.body);
-    if (!image) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'No image data provided' }) };
-    }
-
-    const result = await cloudinary.uploader.upload(image, {
-      folder: 'photo-gallery',
-      public_id: title.replace(/\s+/g, '-').toLowerCase(),
-      tags: category,
-      context: `alt=${title}|description=${description || ''}`,
+    const result = await cloudinary.api.resources({
+      resource_type: 'image',
+      prefix: 'photo-gallery',
+      max_results: 100, // Adjust as needed
+      context: true, // Include custom metadata
+      tags: true,
     });
 
-    const metadataResponse = await fetch('https://picload.netlify.app/.netlify/functions/save-image-metadata', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: result.secure_url,
-        title,
-        description,
-        category,
-      }),
-    });
-
-    const metadata = await metadataResponse.json();
-    if (!metadataResponse.ok) {
-      throw new Error(metadata.error || 'Failed to save metadata');
-    }
+    const images = result.resources.map((resource) => ({
+      id: resource.public_id,
+      url: resource.secure_url,
+      title: resource.context?.custom?.alt || resource.public_id,
+      description: resource.context?.custom?.description || '',
+      category: resource.context?.custom?.category || resource.tags[0] || '',
+      date: resource.context?.custom?.date || resource.created_at,
+    }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ url: result.secure_url, id: metadata.id }),
+      body: JSON.stringify(images),
+      headers: { 'Content-Type': 'application/json' },
     };
   } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Internal server error' }),
+      headers: { 'Content-Type': 'application/json' },
     };
   }
 };

@@ -20,7 +20,6 @@
             background: rgba(0, 0, 0, 0.8);
             color: #fff;
             padding: 1rem 2rem;
-            text-align: center;
             position: sticky;
             top: 0;
             z-index: 10;
@@ -53,11 +52,6 @@
         header .admin-link a:hover {
             background: #4CAF50;
             color: #fff;
-        }
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.8;
-            margin-top: 0.5rem;
         }
         .container {
             max-width: 1400px;
@@ -95,6 +89,11 @@
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
             padding: 1rem;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .photo-card {
             background: #fff;
@@ -102,6 +101,7 @@
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
         .photo-card:hover {
             transform: translateY(-10px);
@@ -128,9 +128,95 @@
         .photo-info p {
             font-size: 0.9rem;
             color: #666;
+            margin-bottom: 0;
+        }
+        .loading, .error-message, .empty-gallery {
+            text-align: center;
+            padding: 3rem;
+            background: #fff;
+            border-radius: 15px;
+            margin: 2rem auto;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .loading { color: #666; font-size: 1.2rem; }
+        .error-message { color: #d32f2f; font-weight: 500; }
+        .empty-gallery h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .empty-gallery p { color: #777; }
+        /* Popup Styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 20;
+            justify-content: center;
+            align-items: center;
+            animation: popupFadeIn 0.3s ease;
+        }
+        @keyframes popupFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .popup-content {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: popupSlideIn 0.3s ease;
+        }
+        @keyframes popupSlideIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .popup-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        .popup-close:hover {
+            color: #d32f2f;
+        }
+        .popup-content h2 {
+            font-size: 1.5rem;
             margin-bottom: 1rem;
         }
-        .download-btn {
+        .popup-content p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .popup-content .tags {
+            margin: 1rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .popup-content .tag {
+            background: #e0e0e0;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        .popup-content select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .popup-content .download-btn {
             display: block;
             background: linear-gradient(45deg, #4CAF50, #66BB6A);
             color: #fff;
@@ -142,54 +228,9 @@
             transition: background 0.3s ease;
             cursor: pointer;
         }
-        .download-btn:hover {
+        .popup-content .download-btn:hover {
             background: linear-gradient(45deg, #388E3C, #4CAF50);
         }
-        .loading, .error-message, .empty-gallery {
-            text-align: center;
-            padding: 3rem;
-            background: #fff;
-            border-radius: 15px;
-            margin: 2rem auto;
-            max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        .loading {
-            color: #666;
-            font-size: 1.2rem;
-        }
-        .error-message {
-            color: #d32f2f;
-            font-weight: 500;
-        }
-        .empty-gallery h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .empty-gallery p {
-            color: #777;
-        }
-
-        .popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.popup.active {
-    opacity: 1;
-}
-.popup-content {
-    background: #fff;
-    padding: 2rem;
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -211,28 +252,6 @@
             <button class="filter-btn" data-category="portrait">Portrait</button>
             <button class="filter-btn" data-category="other">Other</button>
         </div>
-
-        <div class="popup" id="imagePopup" style="display: none;">
-    <div class="popup-content">
-        <span class="close-btn" id="closePopup">&times;</span>
-        <img id="popupImage" src="" alt="">
-        <h3 id="popupTitle"></h3>
-        <p id="popupDescription"></p>
-        <div class="details">
-            <p>File Size: <span id="popupSize"></span></p>
-            <p>Resolution: <span id="popupResolution"></span></p>
-            <label>Download Custom Resolution:
-                <select id="resolutionSelect">
-                    <option value="original">Original</option>
-                    <option value="800x600">800x600</option>
-                    <option value="1280x720">1280x720</option>
-                    <option value="1920x1080">1920x1080</option>
-                </select>
-            </label>
-            <button id="downloadCustomBtn">Download</button>
-        </div>
-    </div>
-</div>
         
         <div class="loading" id="loadingMessage">Loading photos...</div>
         <div class="error-message" id="errorMessage" style="display: none;">Failed to load photos. Please try again later.</div>
@@ -244,12 +263,32 @@
             <p>Add some images in the admin area to get started.</p>
         </div>
     </div>
+
+    <div class="popup" id="imagePopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closePopup()">×</span>
+            <h2 id="popupTitle"></h2>
+            <p><strong>Description:</strong> <span id="popupDescription"></span></p>
+            <p><strong>File Size:</strong> <span id="popupFileSize"></span></p>
+            <p><strong>Resolution:</strong> <span id="popupResolution"></span></p>
+            <div class="tags" id="popupTags"></div>
+            <select id="resolutionSelect">
+                <option value="original">Original Resolution</option>
+                <option value="1280x720">1280x720 (HD)</option>
+                <option value="1920x1080">1920x1080 (Full HD)</option>
+                <option value="800x600">800x600 (Low)</option>
+            </select>
+            <a class="download-btn" id="popupDownloadBtn">Download</a>
+        </div>
+    </div>
     
     <script>
         const gallery = document.getElementById('photoGallery');
         const emptyGallery = document.getElementById('emptyGallery');
         const loadingMessage = document.getElementById('loadingMessage');
         const errorMessage = document.getElementById('errorMessage');
+        const popup = document.getElementById('imagePopup');
+        let currentImageUrl = '';
 
         async function loadImages() {
             try {
@@ -287,45 +326,82 @@
             images.forEach(image => {
                 const card = document.createElement('div');
                 card.className = 'photo-card';
-                card.setAttribute('data-category', image.category);
+                card.setAttribute('data-tags', image.tags ? image.tags.join(',') : image.category); // Use tags or fallback to category
                 card.innerHTML = `
                     <img src="${image.url}" alt="${image.title}">
                     <div class="photo-info">
                         <h3>${image.title}</h3>
                         <p>${image.description || 'No description'}</p>
-                        <a class="download-btn" data-url="${image.url}" data-title="${image.title}">Download</a>
                     </div>
                 `;
+                card.addEventListener('click', () => showPopup(image));
                 gallery.appendChild(card);
-            });
-
-            // Attach download event listeners
-            document.querySelectorAll('.download-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const url = btn.getAttribute('data-url');
-                    const title = btn.getAttribute('data-title');
-                    downloadImage(url, title);
-                });
             });
 
             applyCurrentFilter();
         }
 
-        async function downloadImage(url, title) {
+        async function showPopup(image) {
+            const img = new Image();
+            img.src = image.url;
+            img.onload = async () => {
+                document.getElementById('popupTitle').textContent = image.title;
+                document.getElementById('popupDescription').textContent = image.description || 'No description';
+                
+                // Fetch file size
+                const response = await fetch(image.url, { method: 'HEAD' });
+                const fileSize = response.headers.get('content-length');
+                document.getElementById('popupFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
+
+                // Get resolution from image object
+                document.getElementById('popupResolution').textContent = `${img.width}x${img.height}`;
+
+                // Display tags (array from Cloudinary)
+                const tagsContainer = document.getElementById('popupTags');
+                tagsContainer.innerHTML = '';
+                const tags = image.tags || [image.category]; // Fallback to category if no tags
+                tags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.textContent = tag;
+                    tagsContainer.appendChild(tagElement);
+                });
+
+                // Set up download button
+                const downloadBtn = document.getElementById('popupDownloadBtn');
+                currentImageUrl = image.url;
+                downloadBtn.onclick = () => downloadImage(image.title);
+
+                popup.style.display = 'flex';
+            };
+        }
+
+        function closePopup() {
+            popup.style.display = 'none';
+        }
+
+        async function downloadImage(title) {
+            const resolution = document.getElementById('resolutionSelect').value;
+            let url = currentImageUrl;
+
+            if (resolution !== 'original') {
+                const [width, height] = resolution.split('x');
+                url = `${currentImageUrl.replace(/upload\/v\d+/, `upload/w_${width},h_${height},c_fill`)}`;
+            }
+
             try {
                 const response = await fetch(url);
                 const blob = await response.blob();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `${title}.jpg`; // Force download with title as filename
+                link.download = `${title}-${resolution}.jpg`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(link.href);
             } catch (error) {
                 console.error('Download failed:', error);
-                alert('Failed to download image. Please try again.');
+                alert('Failed to download image.');
             }
         }
 
@@ -333,9 +409,10 @@
             const activeButton = document.querySelector('.filter-btn.active');
             if (!activeButton) return;
 
-            const category = activeButton.getAttribute('data-category');
+            const filterTag = activeButton.getAttribute('data-category');
             document.querySelectorAll('.photo-card').forEach(card => {
-                card.style.display = (category === 'all' || card.getAttribute('data-category') === category) ? 'block' : 'none';
+                const tags = card.getAttribute('data-tags').split(',');
+                card.style.display = (filterTag === 'all' || tags.includes(filterTag)) ? 'block' : 'none';
             });
         }
 

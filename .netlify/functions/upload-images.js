@@ -7,32 +7,52 @@ cloudinary.config({
 });
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+  // Handle OPTIONS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*', // Adjust to your domain in production
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+      body: '',
+    };
+  }
+
+  // Handle POST request
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+      headers: { 'Content-Type': 'application/json' },
+    };
   }
 
   try {
-    const result = await cloudinary.api.resources({
-      resource_type: 'image',
-      prefix: 'photo-gallery',
-      max_results: 100, // Adjust as needed
-      context: true, // Include custom metadata
-      tags: true,
-    });
+    const { image, title, description, category } = JSON.parse(event.body);
+    if (!image || !title || !category) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing required fields: image, title, or category' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    }
 
-    const images = result.resources.map((resource) => ({
-      id: resource.public_id,
-      url: resource.secure_url,
-      title: resource.context?.custom?.alt || resource.public_id,
-      description: resource.context?.custom?.description || '',
-      category: resource.context?.custom?.category || resource.tags[0] || '',
-      date: resource.context?.custom?.date || resource.created_at,
-    }));
+    const result = await cloudinary.uploader.upload(image, {
+      folder: 'photo-gallery',
+      public_id: title.replace(/\s+/g, '-').toLowerCase(),
+      tags: [category],
+      context: `alt=${title}|description=${description || ''}|category=${category}|date=${new Date().toISOString()}`,
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify(images),
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: result.secure_url,
+        id: result.public_id,
+      }),
     };
   } catch (error) {
     return {

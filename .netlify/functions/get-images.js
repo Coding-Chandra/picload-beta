@@ -8,8 +8,8 @@ const config = {
 };
 console.log('Cloudinary config:', {
   cloud_name: config.cloud_name,
-  api_key: config.api_key ? '[REDACTED]' : 'MISSING', // Hide API key but confirm presence
-  api_secret: config.api_secret ? '[REDACTED]' : 'MISSING', // Hide secret but confirm presence
+  api_key: config.api_key ? '[REDACTED]' : 'MISSING',
+  api_secret: config.api_secret ? '[REDACTED]' : 'MISSING',
 });
 cloudinary.config(config);
 
@@ -40,12 +40,11 @@ exports.handler = async (event) => {
     console.log('Fetching images from Cloudinary...');
     const result = await cloudinary.api.resources({
       resource_type: 'image',
+      type: 'upload', // Added required 'type' parameter
       prefix: 'photo-gallery',
       max_results: 100,
       context: true,
       tags: true,
-    }).catch((err) => {
-      throw new Error(`Cloudinary API call failed: ${JSON.stringify(err)}`);
     });
 
     console.log('Cloudinary response:', JSON.stringify(result, null, 2));
@@ -71,7 +70,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         error: 'Internal server error',
         details: error.message || 'No error message available',
-        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)), // Capture all properties
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
       }),
       headers: { 'Content-Type': 'application/json' },
     };

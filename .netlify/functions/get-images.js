@@ -1,10 +1,17 @@
 const cloudinary = require('cloudinary').v2;
 
-cloudinary.config({
+// Log configuration to verify environment variables
+const config = {
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET,
+};
+console.log('Cloudinary config:', {
+  cloud_name: config.cloud_name,
+  api_key: config.api_key ? '[REDACTED]' : 'MISSING', // Hide API key but confirm presence
+  api_secret: config.api_secret ? '[REDACTED]' : 'MISSING', // Hide secret but confirm presence
 });
+cloudinary.config(config);
 
 exports.handler = async (event) => {
   // Handle OPTIONS preflight request
@@ -37,8 +44,11 @@ exports.handler = async (event) => {
       max_results: 100,
       context: true,
       tags: true,
+    }).catch((err) => {
+      throw new Error(`Cloudinary API call failed: ${JSON.stringify(err)}`);
     });
-    console.log('Cloudinary response:', result);
+
+    console.log('Cloudinary response:', JSON.stringify(result, null, 2));
 
     const images = result.resources.map((resource) => ({
       id: resource.public_id,
@@ -61,7 +71,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         error: 'Internal server error',
         details: error.message || 'No error message available',
-        stack: error.stack || 'No stack trace available',
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)), // Capture all properties
       }),
       headers: { 'Content-Type': 'application/json' },
     };

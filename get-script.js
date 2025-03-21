@@ -97,8 +97,13 @@
 
             let filteredImages = imagesData.slice();
             if (activeFilter !== 'all') {
-                filteredImages = filteredImages.filter(image => image.tags && image.tags.includes(activeFilter));
+                filteredImages = filteredImages.filter(image => 
+                    image.tags && image.tags.includes(activeFilter)
+                );
+            } else {
+                filteredImages = imagesData.slice(); // Explicitly reset to all images
             }
+
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
                 filteredImages = filteredImages.filter(image => 
@@ -138,10 +143,11 @@
         sortSelect.addEventListener('change', () => applyCurrentFilterAndSort(searchBar.value));
         searchBar.addEventListener('input', () => applyCurrentFilterAndSort(searchBar.value));
         
-        document.querySelectorAll('.filter-btn').forEach(button => {
-            button.addEventListener('click', function() {
+        // Moved filter button event listener out of updateFilters to ensure it works after DOM updates
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+                e.target.classList.add('active');
                 applyCurrentFilterAndSort(searchBar.value);
-            });
+            }
         });

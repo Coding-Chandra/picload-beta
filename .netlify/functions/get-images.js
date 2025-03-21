@@ -49,14 +49,24 @@ exports.handler = async (event) => {
 
     console.log('Cloudinary response:', JSON.stringify(result, null, 2));
 
+exports.handler = async () => {
+  try {
+    const result = await cloudinary.api.resources({
+      resource_type: 'image',
+      type: 'upload',
+      prefix: 'photo-gallery',
+      max_results: 100,
+    });
+
     const images = result.resources.map((resource) => ({
-    id: resource.public_id,
-    url: resource.secure_url,
-    title: resource.context?.custom?.alt || resource.public_id,
-    description: resource.context?.custom?.description || '',
-    tags: resource.tags || (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
-    date: resource.context?.custom?.date || resource.created_at
-}));
+      id: resource.public_id,
+      url: resource.secure_url,
+      title: resource.context?.custom?.alt || resource.public_id,
+      description: resource.context?.custom?.description || '',
+      tags: resource.tags || (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
+      date: resource.context?.custom?.date || resource.created_at,
+      downloads: resource.context?.custom?.downloads || 0,
+    }));
 
     return {
       statusCode: 200,
@@ -64,15 +74,10 @@ exports.handler = async (event) => {
       body: JSON.stringify(images),
     };
   } catch (error) {
-    console.error('Error in get-images:', error);
+    console.error('Error fetching images:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        error: 'Internal server error',
-        details: error.message || 'No error message available',
-        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
-      }),
-      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Failed to fetch images', details: error.message }),
     };
   }
 };

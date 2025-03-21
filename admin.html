@@ -245,11 +245,17 @@
             }
             
             const formData = new FormData();
-            formData.append('file', file); // Original file, no compression
-            formData.append('upload_preset', 'picload_unsigned'); // Replace with your preset
+            formData.append('file', file);
+            formData.append('upload_preset', 'picload_unsigned');
             formData.append('public_id', `${title.replace(/\s+/g, '-')}-${Date.now()}`);
             formData.append('tags', tags.join(','));
             formData.append('context', `alt=${title}|description=${description || ''}|tags=${tags.join(',')}|date=${new Date().toISOString()}|downloads=0`);
+
+            console.log('Request URL:', 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload');
+            console.log('FormData contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value instanceof File ? `[File: ${value.name}, ${value.size} bytes]` : value);
+            }
 
             progressContainer.style.display = 'block';
             uploadButton.disabled = true;
@@ -267,15 +273,19 @@
                     body: formData,
                 });
                 
+                const responseText = await response.text();
+                console.log('Response status:', response.status);
+                console.log('Response body:', responseText);
+
                 if (!response.ok) {
-                    const errorData = await response.json();
+                    const errorData = JSON.parse(responseText);
                     throw new Error(`Upload failed: ${errorData.error.message || 'Unknown error'}`);
                 }
                 
                 clearInterval(interval);
                 progressBar.style.width = '100%';
                 
-                const result = await response.json();
+                const result = JSON.parse(responseText);
                 console.log('Upload successful:', result);
                 
                 successMessage.style.display = 'block';

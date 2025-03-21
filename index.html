@@ -267,7 +267,7 @@
         </div>
         
         <div class="loading" id="loadingMessage">Loading photos...</div>
-        <div class="error-message" id="errorMessage" style="display: none;">Failed to load photos. Please try again later.</div>
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
         
         <div class="gallery" id="photoGallery" style="display: none;"></div>
         
@@ -315,23 +315,34 @@
                 errorMessage.style.display = 'none';
 
                 const response = await fetch('/.netlify/functions/get-images');
-                if (!response.ok) throw new Error('Fetch failed');
+                console.log('Fetch response status:', response.status);
+                if (!response.ok) throw new Error(`Fetch failed with status ${response.status}`);
 
-                imagesData = await response.json();
+                const images = await response.json();
+                console.log('Raw images data:', images);
+                imagesData = images;
                 loadingMessage.style.display = 'none';
+
+                if (!Array.isArray(images)) {
+                    throw new Error('Response is not an array');
+                }
+
                 displayImages(imagesData);
                 updateFilters();
             } catch (error) {
-                console.error('Error loading images:', error);
+                console.error('Error in loadImages:', error);
                 loadingMessage.style.display = 'none';
                 errorMessage.style.display = 'block';
+                errorMessage.textContent = `Error: ${error.message}`;
                 gallery.style.display = 'none';
                 emptyGallery.style.display = 'none';
             }
         }
 
         function displayImages(images) {
+            console.log('Displaying images:', images);
             if (!images || images.length === 0) {
+                console.log('No images to display');
                 gallery.style.display = 'none';
                 emptyGallery.style.display = 'block';
                 return;
@@ -341,14 +352,18 @@
             emptyGallery.style.display = 'none';
             gallery.innerHTML = '';
 
-            images.forEach(image => {
+            images.forEach((image, index) => {
+                if (!image.url || !image.title) {
+                    console.warn(`Image at index ${index} is missing required fields:`, image);
+                    return;
+                }
                 const card = document.createElement('div');
                 card.className = 'photo-card';
                 card.setAttribute('data-tags', image.tags ? image.tags.join(',') : '');
                 card.setAttribute('data-date', image.date || '');
                 card.setAttribute('data-downloads', image.downloads || 0);
                 card.innerHTML = `
-                    <img src="${image.url}" alt="${image.title}">
+                    <img src="${image.url}" alt="${image.title}" onerror="console.error('Image failed to load:', '${image.url}')">
                     <div class="photo-info">
                         <h3>${image.title}</h3>
                         <p>${image.description || 'No description'}</p>
@@ -357,8 +372,6 @@
                 card.addEventListener('click', () => showPopup(image));
                 gallery.appendChild(card);
             });
-
-            applyCurrentFilterAndSort();
         }
 
         function updateFilters() {
@@ -411,6 +424,7 @@
                 document.getElementById('popupDownloadBtn').onclick = () => downloadImage(image);
                 popup.style.display = 'flex';
             };
+            img.onerror = () => console.error('Popup image failed to load:', image.url);
         }
 
         function closePopup() {
@@ -428,9 +442,8 @@
             const maxSize = resolution === 'original' ? null : parseInt(resolution);
 
             if (maxSize) {
-                // Scale proportionally based on orientation
                 const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`; // q_70 reduces quality
+                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
             }
 
             try {

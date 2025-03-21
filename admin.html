@@ -229,7 +229,7 @@
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             
-            const file = document.getElementById('photoUpload').files[0];
+            const imagePreview = document.getElementById('imagePreview');
             const title = document.getElementById('photoTitle').value.trim();
             const description = document.getElementById('photoDescription').value.trim();
             const tagsInput = document.getElementById('photoTags').value.trim();
@@ -239,65 +239,59 @@
             const progressBar = document.getElementById('progressBar');
             const successMessage = document.getElementById('successMessage');
             
-            if (!file || !title || tags.length === 0) {
+            if (!imagePreview.src || !title || tags.length === 0) {
                 alert('Please complete all required fields: image, title, and at least one tag');
                 return;
             }
             
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'picload_unsigned');
-            formData.append('public_id', `${title.replace(/\s+/g, '-')}-${Date.now()}`);
-            formData.append('tags', tags.join(','));
-            formData.append('context', `alt=${title}|description=${description || ''}|tags=${tags.join(',')}|date=${new Date().toISOString()}|downloads=0`);
-
-            console.log('Request URL:', 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload');
-            console.log('FormData contents:');
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value instanceof File ? `[File: ${value.name}, ${value.size} bytes]` : value);
-            }
-
             progressContainer.style.display = 'block';
             uploadButton.disabled = true;
             uploadButton.textContent = 'Uploading...';
             
             try {
+                const token = netlifyIdentity.currentUser().token.access_token;
+                const data = {
+                    image: imagePreview.src,
+                    title,
+                    description,
+                    tags
+                };
+                
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 10;
                     if (progress <= 90) progressBar.style.width = progress + '%';
                 }, 300);
                 
-                const response = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
+                const response = await fetch('/.netlify/functions/upload-images', {
                     method: 'POST',
-                    body: formData,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
                 });
                 
-                const responseText = await response.text();
-                console.log('Response status:', response.status);
-                console.log('Response body:', responseText);
-
                 if (!response.ok) {
-                    const errorData = JSON.parse(responseText);
-                    throw new Error(`Upload failed: ${errorData.error.message || 'Unknown error'}`);
+                    const errorText = await response.text();
+                    throw new Error(`Upload failed: ${errorText}`);
                 }
                 
                 clearInterval(interval);
                 progressBar.style.width = '100%';
                 
-                const result = JSON.parse(responseText);
-                console.log('Upload successful:', result);
+                await response.json();
                 
                 successMessage.style.display = 'block';
                 setTimeout(() => successMessage.style.display = 'none', 3000);
                 
                 document.getElementById('uploadForm').reset();
-                document.getElementById('imagePreview').style.display = 'none';
+                imagePreview.style.display = 'none';
                 progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
             } catch (error) {
-                console.error('Upload error:', error);
                 alert('Upload failed: ' + error.message);
+                console.error(error);
             } finally {
                 uploadButton.disabled = false;
                 uploadButton.textContent = 'Upload Photo';

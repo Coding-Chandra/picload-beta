@@ -1,0 +1,163 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header .branding a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+        header .branding a:hover {
+            color: #4CAF50;
+        }
+        header .admin-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: 1px solid #4CAF50;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        header .admin-link a:hover {
+            background: #4CAF50;
+            color: #fff;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .search-bar {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
+        .category-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .sort-options select {
+            padding: 0.75rem 1.5rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .sort-options select:hover {
+            background: #f0f0f0;
+        }
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            background: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .filter-btn:hover {
+            background: #333;
+            color: #fff;
+        }
+        .filter-btn.active {
+            background: #333;
+            color: #fff;
+            font-weight: 600;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .photo-card {
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .photo-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .photo-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+        .photo-card:hover img {
+            opacity: 0.9;
+        }
+        .photo-info {
+            padding: 1rem;
+        }
+        .photo-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+        .photo-info p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0;
+        }
+        .loading, .error-message, .empty-gallery {
+            text-align: center;
+            padding: 3rem;
+            background: #fff;
+            border-radius: 15px;
+            margin: 2rem auto;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .loading { color: #666; font-size: 1.2rem; }
+        .error-message { color: #d32f2f; font-weight: 500; }
+        .empty-gallery h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .empty-gallery p { color: #777; }

@@ -3,179 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Gallery Admin</title>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script> <!-- Add Axios for simplicity -->
+    <title>Picload - Admin</title>
     <style>
-        /* Same styles as before */
-        body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; background-color: #f0f0f0; }
-        header { background-color: #222; color: white; padding: 1rem; text-align: center; }
-        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
-        .admin-panel { background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 2rem; }
-        .upload-form { display: flex; flex-direction: column; }
-        input, select, button, textarea { margin-bottom: 1rem; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; }
-        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
-        .preview-container { margin-top: 1rem; text-align: center; }
-        #imagePreview { max-width: 100%; max-height: 300px; display: none; margin: 0 auto; border: 1px solid #ddd; border-radius: 4px; }
-        .login-button { display: block; margin: 1rem auto; padding: 1rem 2rem; }
-        .back-link { display: block; margin-top: 1rem; text-align: center; }
-        .progress-container { width: 100%; background-color: #f1f1f1; border-radius: 4px; margin-bottom: 1rem; display: none; }
-        .progress-bar { width: 0%; height: 20px; background-color: #4CAF50; border-radius: 4px; transition: width 0.3s; }
-        .success-message { color: #4CAF50; text-align: center; margin: 1rem 0; display: none; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 2rem;
+        }
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        button {
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #388E3C;
+        }
+        #progress {
+            text-align: center;
+            margin-top: 1rem;
+            color: #666;
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>Photo Gallery Admin</h1>
-    </header>
-    
-    <div class="container">
-        <div class="admin-panel" id="loginSection">
-            <h2>Admin Area</h2>
-            <p>You need to log in to access the admin features.</p>
-            <button class="login-button" onclick="netlifyIdentity.open()">Log in</button>
-        </div>
-        
-        <div class="admin-panel" id="uploadSection" style="display: none;">
-            <h2>Upload New Photo</h2>
-            <div class="success-message" id="successMessage">Photo uploaded successfully!</div>
-            <form class="upload-form" id="uploadForm">
-                <input type="file" id="photoUpload" accept="image/*" required>
-                <div class="preview-container">
-                    <img id="imagePreview" alt="Image Preview">
-                </div>
-                <input type="text" id="photoTitle" placeholder="Photo Title" required>
-                <textarea id="photoDescription" placeholder="Photo Description" rows="3"></textarea>
-                <select id="photoCategory" required>
-                    <option value="">-- Select Category --</option>
-                    <option value="nature">Nature</option>
-                    <option value="urban">Urban</option>
-                    <option value="portrait">Portrait</option>
-                    <option value="other">Other</option>
-                </select>
-                <input type="text" id="photoTags" placeholder="Describing-Tags (comma-separated, e.g., sunset)" required>
-                <div class="progress-container" id="progressContainer">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <button type="submit" id="uploadButton">Upload Photo</button>
-            </form>
-            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
-        </div>
-        
-        <a href="index.html" class="back-link">Back to Gallery</a>
-    </div>
-    
+    <form id="uploadForm">
+        <input type="file" id="imageInput" accept="image/*" required>
+        <input type="text" id="title" placeholder="Title" required>
+        <input type="text" id="description" placeholder="Description">
+        <input type="text" id="tags" placeholder="Tags (comma-separated)" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="progress"></div>
+
     <script>
-        netlifyIdentity.on('init', user => {
-            if (user) {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('uploadSection').style.display = 'block';
-            }
-        });
-        
-        netlifyIdentity.on('login', user => {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('uploadSection').style.display = 'block';
-        });
-        
-        netlifyIdentity.on('logout', () => {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('uploadSection').style.display = 'none';
-        });
-        
-        document.getElementById('photoUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('imagePreview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            
-            const fileInput = document.getElementById('photoUpload');
-            const title = document.getElementById('photoTitle').value;
-            const description = document.getElementById('photoDescription').value;
-            const category = document.getElementById('photoCategory').value;
-            const uploadButton = document.getElementById('uploadButton');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const successMessage = document.getElementById('successMessage');
-            
-            if (!fileInput.files[0] || !title || !category) {
-                alert('Please complete all required fields');
-                return;
-            }
-            
-            progressContainer.style.display = 'block';
-            uploadButton.disabled = true;
-            uploadButton.textContent = 'Uploading...';
-            
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const file = document.getElementById('imageInput').files[0];
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
+            const progressDiv = document.getElementById('progress');
+
+            const formData = new FormData();
+            formData.append('file', file); // Raw file, preserves original quality
+            formData.append('upload_preset', 'picload_unsigned'); // Your unsigned preset
+            formData.append('public_id', `${title}-${Date.now()}`);
+            formData.append('tags', tags.join(',')); // Cloudinary tags
+            formData.append('context', `alt=${title}|description=${description || ''}|tags=${tags.join(',')}|date=${new Date().toISOString()}|downloads=0`);
+
             try {
-                const token = netlifyIdentity.currentUser().token.access_token;
-                
-                // Step 1: Get signature from function
-                const signatureResponse = await fetch('.netlify/functions/upload-images', {
+                progressDiv.textContent = 'Uploading...';
+
+                const response = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ title, description, category }),
+                    body: formData,
                 });
-                
-                if (!signatureResponse.ok) {
-                    throw new Error(`Signature fetch failed: ${await signatureResponse.text()}`);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || 'Upload failed');
                 }
-                
-                const { signature, timestamp, apiKey, cloudName, folder, publicId, tags, context } = await signatureResponse.json();
-                
-                // Step 2: Upload directly to Cloudinary
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                formData.append('api_key', apiKey);
-                formData.append('timestamp', timestamp);
-                formData.append('signature', signature);
-                formData.append('folder', folder);
-                formData.append('public_id', publicId);
-                formData.append('tags', tags.join(','));
-                formData.append('context', context);
-                
-                let progress = 0;
-                const interval = setInterval(() => {
-                    progress += 10;
-                    if (progress <= 90) progressBar.style.width = progress + '%';
-                }, 300);
-                
-                const uploadResponse = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData, {
-                    onUploadProgress: (progressEvent) => {
-                        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        if (percent <= 90) progressBar.style.width = percent + '%';
-                    },
-                });
-                
-                clearInterval(interval);
-                progressBar.style.width = '100%';
-                
-                successMessage.style.display = 'block';
-                setTimeout(() => successMessage.style.display = 'none', 3000);
-                
-                document.getElementById('uploadForm').reset();
-                document.getElementById('imagePreview').style.display = 'none';
-                progressContainer.style.display = 'none';
-                progressBar.style.width = '0%';
+
+                const result = await response.json();
+                console.log('Upload successful:', result);
+                progressDiv.textContent = 'Upload complete!';
+                alert('Image uploaded successfully in original quality!');
             } catch (error) {
-                alert('Upload failed: ' + (error.message || 'Unknown error'));
                 console.error('Upload error:', error);
-            } finally {
-                uploadButton.disabled = false;
-                uploadButton.textContent = 'Upload Photo';
+                progressDiv.textContent = '';
+                alert('Upload failed: ' + error.message);
             }
         });
     </script>

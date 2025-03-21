@@ -13,6 +13,8 @@ exports.handler = async () => {
       type: 'upload',
       prefix: 'photo-gallery',
       max_results: 100,
+      context: true,
+      tags: true,
     });
 
     const images = result.resources.map((resource) => ({
@@ -20,7 +22,9 @@ exports.handler = async () => {
       url: resource.secure_url,
       title: resource.context?.custom?.alt || resource.public_id.split('/').pop(),
       description: resource.context?.custom?.description || '',
-      tags: resource.tags || (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
+      tags: resource.tags && resource.tags.length > 0 
+        ? resource.tags 
+        : (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
       date: resource.context?.custom?.date || resource.created_at,
       downloads: parseInt(resource.context?.custom?.downloads) || 0,
     }));
@@ -29,7 +33,7 @@ exports.handler = async () => {
       statusCode: 200,
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify(images),
     };
@@ -39,7 +43,7 @@ exports.handler = async () => {
       statusCode: 500,
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({ error: 'Failed to fetch images', details: error.message }),
     };

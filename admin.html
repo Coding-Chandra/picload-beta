@@ -153,6 +153,9 @@
         <div class="branding">
             <a href="/">Picload</a>
         </div>
+        <div class="admin-link">
+            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
+        </div>
     </header>
     
     <div class="container">
@@ -187,7 +190,6 @@
                 <button type="submit" id="uploadButton">Upload Photo</button>
             </form>
             
-            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
         </div>
         
         <div class="back-link">

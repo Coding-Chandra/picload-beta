@@ -67,8 +67,23 @@
         }
         .category-filter {
             display: flex;
-            flex-wrap: wrap;
             gap: 1rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 0.5rem; /* Space for scrollbar */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #888 #f0f0f0; /* Firefox */
+        }
+        .category-filter::-webkit-scrollbar {
+            height: 8px; /* Chrome, Safari */
+        }
+        .category-filter::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .category-filter::-webkit-scrollbar-track {
+            background: #f0f0f0;
         }
         .sort-options select {
             padding: 0.75rem 1.5rem;
@@ -92,6 +107,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Prevent buttons from shrinking */
         }
         .filter-btn:hover {
             background: #333;

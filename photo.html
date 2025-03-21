@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picload - Photo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        header a:hover {
+            color: #4CAF50;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .photo-details {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .photo-details img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .photo-details h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .photo-details p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .tags {
+            margin: 1rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background: #e0e0e0;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .download-btn {
+            display: block;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: #fff;
+            text-decoration: none;
+            padding: 0.75rem;
+            text-align: center;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+        .download-btn:hover {
+            background: linear-gradient(45deg, #388E3C, #4CAF50);
+        }
+        .suggestions {
+            margin-top: 2rem;
+        }
+        .suggestions h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .suggestion-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .suggestion-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .suggestion-card p {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+            color: #333;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <a href="index.html">Picload</a>
+    </header>
+    
+    <div class="container">
+        <div class="photo-details" id="photoDetails">
+            <img id="photoImage" alt="">
+            <h1 id="photoTitle"></h1>
+            <p><strong>Description:</strong> <span id="photoDescription"></span></p>
+            <p><strong>File Size:</strong> <span id="photoFileSize"></span></p>
+            <p><strong>Resolution:</strong> <span id="photoResolution"></span></p>
+            <p><strong>Downloads:</strong> <span id="photoDownloads"></span></p>
+            <div class="tags" id="photoTags"></div>
+            <select id="resolutionSelect">
+                <option value="original">Original Resolution</option>
+                <option value="1280">1280px (Max Width/Height)</option>
+                <option value="1920">1920px (Max Width/Height)</option>
+                <option value="800">800px (Max Width/Height)</option>
+            </select>
+            <a class="download-btn" id="downloadBtn">Download</a>
+        </div>
+        
+        <div class="suggestions">
+            <h2>Similar Photos</h2>
+            <div class="suggestions-grid" id="suggestionsGrid"></div>
+        </div>
+    </div>
+    
+    <script>
+        let imagesData = [];
+
+        async function loadImages() {
+            try {
+                const response = await fetch('/.netlify/functions/get-images');
+                if (!response.ok) throw new Error('Fetch failed');
+                imagesData = await response.json();
+                displayPhoto();
+            } catch (error) {
+                console.error('Error loading images:', error);
+                document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayPhoto() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const photoId = urlParams.get('id');
+            const image = imagesData.find(img => img.id === photoId);
+
+            if (!image) {
+                document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
+                return;
+            }
+
+            const img = new Image();
+            img.src = image.url;
+            img.onload = async () => {
+                document.getElementById('photoImage').src = image.url;
+                document.getElementById('photoTitle').textContent = image.title;
+                document.getElementById('photoDescription').textContent = image.description || 'No description';
+                
+                const response = await fetch(image.url, { method: 'HEAD' });
+                const fileSize = response.headers.get('content-length');
+                document.getElementById('photoFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
+
+                document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
+                document.getElementById('photoDownloads').textContent = image.downloads || 0;
+
+                const tagsContainer = document.getElementById('photoTags');
+                tagsContainer.innerHTML = '';
+                image.tags?.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.textContent = tag;
+                    tagsContainer.appendChild(tagElement);
+                });
+
+                document.getElementById('downloadBtn').onclick = () => downloadImage(image);
+                displaySuggestions(image);
+            };
+        }
+
+        function displaySuggestions(currentImage) {
+            const suggestionsGrid = document.getElementById('suggestionsGrid');
+            const similarImages = imagesData
+                .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
+                .sort(() => 0.5 - Math.random()) // Shuffle
+                .slice(0, 15);
+
+            suggestionsGrid.innerHTML = '';
+            similarImages.forEach(image => {
+                const card = document.createElement('div');
+                card.className = 'suggestion-card';
+                card.innerHTML = `
+                    <img src="${image.url}" alt="${image.title}">
+                    <p>${image.title}</p>
+                `;
+                card.addEventListener('click', () => {
+                    window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
+                });
+                suggestionsGrid.appendChild(card);
+            });
+        }
+
+        async function downloadImage(image) {
+            const resolution = document.getElementById('resolutionSelect').value;
+            let url = image.url;
+            const img = new Image();
+            img.src = image.url;
+
+            await new Promise(resolve => img.onload = resolve);
+            const isPortrait = img.height > img.width;
+            const maxSize = resolution === 'original' ? null : parseInt(resolution);
+
+            if (maxSize) {
+                const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
+                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${image.title}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+                image.downloads = (image.downloads || 0) + 1;
+                document.getElementById('photoDownloads').textContent = image.downloads;
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Failed to download image.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadImages);
+    </script>
+</body>
+</html>

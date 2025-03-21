@@ -65,6 +65,13 @@
             gap: 1rem;
             margin-bottom: 2rem;
         }
+        .search-bar {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
         .category-filter, .sort-options {
             display: flex;
             flex-wrap: wrap;
@@ -148,100 +155,6 @@
         .error-message { color: #d32f2f; font-weight: 500; }
         .empty-gallery h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
         .empty-gallery p { color: #777; }
-        .popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 20;
-            justify-content: center;
-            align-items: center;
-            animation: popupFadeIn 0.3s ease;
-        }
-        @keyframes popupFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .popup-content {
-            background: #fff;
-            border-radius: 15px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            animation: popupSlideIn 0.3s ease;
-        }
-        @keyframes popupSlideIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .popup-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            transition: color 0.3s ease;
-        }
-        .popup-close:hover {
-            color: #d32f2f;
-        }
-        .popup-content img {
-            width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-        }
-        .popup-content h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .popup-content p {
-            font-size: 1rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-        .popup-content .tags {
-            margin: 1rem 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .popup-content .tag {
-            background: #e0e0e0;
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            font-size: 0.9rem;
-        }
-        .popup-content select {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        .popup-content .download-btn {
-            display: block;
-            background: linear-gradient(45deg, #4CAF50, #66BB6A);
-            color: #fff;
-            text-decoration: none;
-            padding: 0.75rem;
-            text-align: center;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: background 0.3s ease;
-            cursor: pointer;
-        }
-        .popup-content .download-btn:hover {
-            background: linear-gradient(45deg, #388E3C, #4CAF50);
-        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -257,6 +170,7 @@
     
     <div class="container">
         <div class="controls">
+            <input type="text" class="search-bar" id="searchBar" placeholder="Search by tags or keywords...">
             <div class="category-filter" id="categoryFilter"></div>
             <div class="sort-options">
                 <button class="sort-btn active" data-sort="new-to-old">New to Old</button>
@@ -276,26 +190,6 @@
             <p>Add some images in the admin area to get started.</p>
         </div>
     </div>
-
-    <div class="popup" id="imagePopup">
-        <div class="popup-content">
-            <span class="popup-close" onclick="closePopup()">×</span>
-            <img id="popupImage" alt="Preview">
-            <h2 id="popupTitle"></h2>
-            <p><strong>Description:</strong> <span id="popupDescription"></span></p>
-            <p><strong>File Size:</strong> <span id="popupFileSize"></span></p>
-            <p><strong>Resolution:</strong> <span id="popupResolution"></span></p>
-            <p><strong>Downloads:</strong> <span id="popupDownloads"></span></p>
-            <div class="tags" id="popupTags"></div>
-            <select id="resolutionSelect">
-                <option value="original">Original Resolution</option>
-                <option value="1280">1280px (Max Width/Height)</option>
-                <option value="1920">1920px (Max Width/Height)</option>
-                <option value="800">800px (Max Width/Height)</option>
-            </select>
-            <a class="download-btn" id="popupDownloadBtn">Download</a>
-        </div>
-    </div>
     
     <script>
         const gallery = document.getElementById('photoGallery');
@@ -303,9 +197,8 @@
         const loadingMessage = document.getElementById('loadingMessage');
         const errorMessage = document.getElementById('errorMessage');
         const categoryFilter = document.getElementById('categoryFilter');
-        const popup = document.getElementById('imagePopup');
+        const searchBar = document.getElementById('searchBar');
         let imagesData = [];
-        let currentImage = null;
 
         async function loadImages() {
             try {
@@ -315,17 +208,13 @@
                 errorMessage.style.display = 'none';
 
                 const response = await fetch('/.netlify/functions/get-images');
-                console.log('Fetch response status:', response.status);
                 if (!response.ok) throw new Error(`Fetch failed with status ${response.status}`);
 
-                const images = await response.json();
-                console.log('Raw images data:', images);
-                imagesData = images;
+                imagesData = await response.json();
+                console.log('Raw images data:', imagesData);
                 loadingMessage.style.display = 'none';
 
-                if (!Array.isArray(images)) {
-                    throw new Error('Response is not an array');
-                }
+                if (!Array.isArray(imagesData)) throw new Error('Response is not an array');
 
                 displayImages(imagesData);
                 updateFilters();
@@ -340,9 +229,7 @@
         }
 
         function displayImages(images) {
-            console.log('Displaying images:', images);
             if (!images || images.length === 0) {
-                console.log('No images to display');
                 gallery.style.display = 'none';
                 emptyGallery.style.display = 'block';
                 return;
@@ -352,9 +239,9 @@
             emptyGallery.style.display = 'none';
             gallery.innerHTML = '';
 
-            images.forEach((image, index) => {
+            images.forEach((image) => {
                 if (!image.url || !image.title) {
-                    console.warn(`Image at index ${index} is missing required fields:`, image);
+                    console.warn('Image missing required fields:', image);
                     return;
                 }
                 const card = document.createElement('div');
@@ -369,7 +256,9 @@
                         <p>${image.description || 'No description'}</p>
                     </div>
                 `;
-                card.addEventListener('click', () => showPopup(image));
+                card.addEventListener('click', () => {
+                    window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
+                });
                 gallery.appendChild(card);
             });
         }
@@ -395,78 +284,7 @@
             });
         }
 
-        async function showPopup(image) {
-            currentImage = image;
-            const img = new Image();
-            img.src = image.url;
-            img.onload = async () => {
-                document.getElementById('popupImage').src = image.url;
-                document.getElementById('popupTitle').textContent = image.title;
-                document.getElementById('popupDescription').textContent = image.description || 'No description';
-                
-                const response = await fetch(image.url, { method: 'HEAD' });
-                const fileSize = response.headers.get('content-length');
-                document.getElementById('popupFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
-
-                document.getElementById('popupResolution').textContent = `${img.width}x${img.height}`;
-                document.getElementById('popupDownloads').textContent = image.downloads || 0;
-
-                const tagsContainer = document.getElementById('popupTags');
-                tagsContainer.innerHTML = '';
-                const tags = image.tags || [];
-                tags.forEach(tag => {
-                    const tagElement = document.createElement('span');
-                    tagElement.className = 'tag';
-                    tagElement.textContent = tag;
-                    tagsContainer.appendChild(tagElement);
-                });
-
-                document.getElementById('popupDownloadBtn').onclick = () => downloadImage(image);
-                popup.style.display = 'flex';
-            };
-            img.onerror = () => console.error('Popup image failed to load:', image.url);
-        }
-
-        function closePopup() {
-            popup.style.display = 'none';
-        }
-
-        async function downloadImage(image) {
-            const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url;
-            const img = new Image();
-            img.src = image.url;
-
-            await new Promise(resolve => img.onload = resolve);
-            const isPortrait = img.height > img.width;
-            const maxSize = resolution === 'original' ? null : parseInt(resolution);
-
-            if (maxSize) {
-                const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
-            }
-
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `${image.title}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-
-                image.downloads = (image.downloads || 0) + 1;
-                document.getElementById('popupDownloads').textContent = image.downloads;
-                sortImages();
-            } catch (error) {
-                console.error('Download failed:', error);
-                alert('Failed to download image.');
-            }
-        }
-
-        function applyCurrentFilterAndSort() {
+        function applyCurrentFilterAndSort(searchQuery = '') {
             const activeFilter = document.querySelector('.filter-btn.active')?.getAttribute('data-category') || 'all';
             const activeSort = document.querySelector('.sort-btn.active')?.getAttribute('data-sort') || 'new-to-old';
 
@@ -474,12 +292,20 @@
             if (activeFilter !== 'all') {
                 filteredImages = filteredImages.filter(image => image.tags && image.tags.includes(activeFilter));
             }
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filteredImages = filteredImages.filter(image => 
+                    (image.tags && image.tags.some(tag => tag.toLowerCase().includes(query))) ||
+                    (image.description && image.description.toLowerCase().includes(query)) ||
+                    image.title.toLowerCase().includes(query)
+                );
+            }
 
             sortImages(filteredImages, activeSort);
             displayImages(filteredImages);
         }
 
-        function sortImages(images = imagesData, sortType = 'new-to-old') {
+        function sortImages(images, sortType) {
             switch (sortType) {
                 case 'new-to-old':
                     images.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -506,9 +332,11 @@
             button.addEventListener('click', function() {
                 document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                applyCurrentFilterAndSort();
+                applyCurrentFilterAndSort(searchBar.value);
             });
         });
+
+        searchBar.addEventListener('input', () => applyCurrentFilterAndSort(searchBar.value));
     </script>
 </body>
 </html>

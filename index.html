@@ -72,12 +72,25 @@
             border-radius: 25px;
             font-size: 1rem;
         }
-        .category-filter, .sort-options {
+        .category-filter {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
         }
-        .filter-btn, .sort-btn {
+        .sort-options select {
+            padding: 0.75rem 1.5rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .sort-options select:hover {
+            background: #f0f0f0;
+        }
+        .filter-btn {
             padding: 0.75rem 1.5rem;
             background: #fff;
             border: none;
@@ -87,11 +100,11 @@
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        .filter-btn:hover, .sort-btn:hover {
+        .filter-btn:hover {
             background: #333;
             color: #fff;
         }
-        .filter-btn.active, .sort-btn.active {
+        .filter-btn.active {
             background: #333;
             color: #fff;
             font-weight: 600;
@@ -173,10 +186,12 @@
             <input type="text" class="search-bar" id="searchBar" placeholder="Search by tags or keywords...">
             <div class="category-filter" id="categoryFilter"></div>
             <div class="sort-options">
-                <button class="sort-btn active" data-sort="new-to-old">New to Old</button>
-                <button class="sort-btn" data-sort="old-to-new">Old to New</button>
-                <button class="sort-btn" data-sort="most-downloaded">Most Downloaded</button>
-                <button class="sort-btn" data-sort="shuffled">Shuffled</button>
+                <select id="sortSelect">
+                    <option value="new-to-old" selected>New to Old</option>
+                    <option value="old-to-new">Old to New</option>
+                    <option value="most-downloaded">Most Downloaded</option>
+                    <option value="shuffled">Shuffled</option>
+                </select>
             </div>
         </div>
         
@@ -198,6 +213,7 @@
         const errorMessage = document.getElementById('errorMessage');
         const categoryFilter = document.getElementById('categoryFilter');
         const searchBar = document.getElementById('searchBar');
+        const sortSelect = document.getElementById('sortSelect');
         let imagesData = [];
 
         async function loadImages() {
@@ -286,7 +302,7 @@
 
         function applyCurrentFilterAndSort(searchQuery = '') {
             const activeFilter = document.querySelector('.filter-btn.active')?.getAttribute('data-category') || 'all';
-            const activeSort = document.querySelector('.sort-btn.active')?.getAttribute('data-sort') || 'new-to-old';
+            const activeSort = sortSelect.value || 'new-to-old';
 
             let filteredImages = imagesData.slice();
             if (activeFilter !== 'all') {
@@ -328,15 +344,16 @@
 
         document.addEventListener('DOMContentLoaded', loadImages);
 
-        document.querySelectorAll('.sort-btn').forEach(button => {
+        sortSelect.addEventListener('change', () => applyCurrentFilterAndSort(searchBar.value));
+        searchBar.addEventListener('input', () => applyCurrentFilterAndSort(searchBar.value));
+        
+        document.querySelectorAll('.filter-btn').forEach(button => {
             button.addEventListener('click', function() {
-                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 applyCurrentFilterAndSort(searchBar.value);
             });
         });
-
-        searchBar.addEventListener('input', () => applyCurrentFilterAndSort(searchBar.value));
     </script>
 </body>
 </html>

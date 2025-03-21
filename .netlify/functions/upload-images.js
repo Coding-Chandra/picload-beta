@@ -6,33 +6,28 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-exports.handler = async (event) => {
+exports.handler = async () => {
   try {
-    const body = JSON.parse(event.body);
-    const { image, title, description, tags } = body;
-
-    if (!image || !title || !tags) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing required fields: image, title, or tags' }),
-      };
-    }
-
-    const result = await cloudinary.uploader.upload(image, {
-      folder: 'photo-gallery',
-      public_id: `${title}-${Date.now()}`,
-      context: {
-        custom: {
-          alt: title,
-          description: description || '',
-          tags: tags.join(','),
-          date: new Date().toISOString(),
-          downloads: '0',
-        },
-      },
-      tags: tags,
+    const result = await cloudinary.api.resources({
+      resource_type: 'image',
+      type: 'upload',
+      prefix: 'photo-gallery',
+      max_results: 100,
+      context: true,
+      tags: true,
     });
+
+    const images = result.resources.map((resource) => ({
+      id: resource.public_id,
+      url: resource.secure_url,
+      title: resource.context?.custom?.alt || resource.public_id.split('/').pop(),
+      description: resource.context?.custom?.description || '',
+      tags: resource.tags && resource.tags.length > 0 
+        ? resource.tags 
+        : (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
+      date: resource.context?.custom?.date || resource.created_at,
+      downloads: parseInt(resource.context?.custom?.downloads) || 0,
+    }));
 
     return {
       statusCode: 200,
@@ -40,25 +35,17 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({
-        id: result.public_id,
-        url: result.secure_url,
-        title,
-        description,
-        tags,
-        date: result.created_at,
-        downloads: 0,
-      }),
+      body: JSON.stringify(images),
     };
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('Error fetching images:', error);
     return {
       statusCode: 500,
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({ error: 'Failed to upload image', details: error.message }),
+      body: JSON.stringify({ error: 'Failed to fetch images', details: error.message }),
     };
   }
 };

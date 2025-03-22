@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Picload - Photo Gallery</title>
-    <link href="./main-style.css" rel="stylesheet">
+    <link rel="stylesheet" href="main-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="logo.png">
 </head>
 <body>
+    <!-- Pre-loader -->
+    <div class="preloader" id="preloader">
+        <img src="logo.png" alt="Picload Logo" class="preloader-logo">
+    </div>
+
     <header>
         <div class="branding">
-            <a href="/">Picload</a>
+            <a href="/"><img src="logo.png" alt="Picload Logo" class="header-logo"></a>
         </div>
         <div class="admin-link">
             <a href="admin.html">Admin Area</a>
@@ -41,6 +47,7 @@
             <p>Add some images in the admin area to get started.</p>
         </div>
     </div>
-    <script src="/get-script.js"></script>
+    
+    <script src="getscript.js"></script>
 </body>
 </html>

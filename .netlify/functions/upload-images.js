@@ -2,9 +2,9 @@ const cloudinary = require('cloudinary').v2;
 
 // Configure Cloudinary with environment variables
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Should be 'dpemqdflm'
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUD_NAME || 'dpemqdflm', // Fallback to dpemqdflm
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
   secure: true
 });
 
@@ -27,6 +27,20 @@ exports.handler = async (event) => {
         statusCode: 405,
         headers: { 'Access-Control-Allow-Origin': '*' },
         body: JSON.stringify({ error: 'Method not allowed' })
+      };
+    }
+
+    // Check for missing environment variables
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Missing environment variables:', {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Not set'
+      });
+      return {
+        statusCode: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Server configuration error: Missing Cloudinary credentials' })
       };
     }
 
@@ -62,7 +76,7 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       },
       body: JSON.stringify({
-        uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`, // Will resolve to 'dpemqdflm'
+        uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
         params: {
           api_key: process.env.CLOUDINARY_API_KEY,
           timestamp: timestamp,

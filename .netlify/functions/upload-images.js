@@ -1,7 +1,8 @@
 const cloudinary = require('cloudinary').v2;
 
+// Configure Cloudinary with environment variables
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Should be 'dpemqdflm'
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true
@@ -61,7 +62,7 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       },
       body: JSON.stringify({
-        uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+        uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`, // Will resolve to 'dpemqdflm'
         params: {
           api_key: process.env.CLOUDINARY_API_KEY,
           timestamp: timestamp,

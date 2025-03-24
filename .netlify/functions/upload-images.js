@@ -43,10 +43,14 @@ exports.handler = async (event) => {
       process.env.CLOUDINARY_API_SECRET
     );
 
-    // Return the signed upload parameters
+    // Return the signed upload parameters with the correct URL
     return {
       statusCode: 200,
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS', // Add for CORS
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization' // Add for CORS
+      },
       body: JSON.stringify({
         uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
         params: {

@@ -11,6 +11,13 @@ console.log('Cloudinary config:', {
   api_secret: config.api_secret ? '[REDACTED]' : 'MISSING',
 });
 
+// Hypothetical endpoint to increment downloads (not implemented here)
+const incrementDownloads = async (publicId) => {
+    await cloudinary.api.update(publicId, {
+        context: `downloads|=increment`,
+    });
+};
+
 cloudinary.config(config);
 
 exports.handler = async (event) => {

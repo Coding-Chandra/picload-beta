@@ -1,121 +1,304 @@
-const cloudinary = require('cloudinary').v2;
-
-const config = {
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-};
-console.log('Cloudinary config:', {
-  cloud_name: config.cloud_name || 'MISSING',
-  api_key: config.api_key ? '[REDACTED]' : 'MISSING',
-  api_secret: config.api_secret ? '[REDACTED]' : 'MISSING',
-});
-
-cloudinary.config(config);
-
-exports.handler = async (event) => {
-  console.log('Function invoked:', { method: event.httpMethod, bodyLength: event.body ? event.body.length : 'NO BODY' });
-
-  if (event.httpMethod === 'OPTIONS') {
-    console.log('Returning OPTIONS response');
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-      body: '',
-    };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    console.log('Method not allowed:', event.httpMethod);
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
-      headers: { 'Content-Type': 'application/json' },
-    };
-  }
-
-  try {
-    if (!event.body) {
-      console.log('No body provided');
-      throw new Error('Request body is empty');
-    }
-
-    console.log('Raw body preview:', event.body.slice(0, 100) + '...');
-    let data;
-    try {
-      data = JSON.parse(event.body);
-    } catch (parseError) {
-      console.error('Body parsing failed:', parseError);
-      throw new Error(`Invalid JSON: ${parseError.message}`);
-    }
-
-    const { image, title, description, tags } = data;
-    console.log('Parsed data:', {
-      title: title || 'MISSING',
-      description: description || 'NONE',
-      tags: tags || 'MISSING',
-      imagePreview: image ? `${image.slice(0, 50)}... (length: ${image.length})` : 'MISSING',
-    });
-
-    if (!image || !title || !tags || !Array.isArray(tags) || tags.length === 0) {
-      console.log('Validation failed: missing or invalid fields');
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing or invalid fields: image, title, or tags (must be a non-empty array)' }),
-        headers: { 'Content-Type': 'application/json' },
-      };
-    }
-
-    const base64Regex = /^data:image\/[a-z]+;base64,/;
-    if (!base64Regex.test(image)) {
-      console.log('Invalid base64 format');
-      throw new Error('Image must be a valid base64 string (e.g., "data:image/jpeg;base64,...")');
-    }
-
-    const uploadOptions = {
-      folder: 'photo-gallery',
-      public_id: `${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`, // Unique ID with timestamp
-      tags: tags, // Array of tags
-      context: `alt=${title}|description=${description || ''}|tags=${tags.join(',')}|date=${new Date().toISOString()}`,
-    };
-    console.log('Upload options:', uploadOptions);
-
-    console.log('Starting Cloudinary upload...');
-    const result = await cloudinary.uploader.upload(image, uploadOptions).catch((err) => {
-      console.error('Upload error:', err);
-      if (err.http_code === 429 || err.message.includes('limit')) {
-        throw new Error('Cloudinary rate limit exceeded. Please try again later or check your plan.');
-      }
-      throw new Error(`Cloudinary upload failed: ${JSON.stringify(err)}`);
-    });
-
-    console.log('Upload result:', {
-      url: result.secure_url,
-      id: result.public_id,
-    });
-
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: result.secure_url,
-        id: result.public_id,
-      }),
-    };
-  } catch (error) {
-    console.error('Full error in upload-images:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: 'Internal server error',
-        details: error.message || 'No error message available',
-        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    };
-  }
-};
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picload - Admin</title>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+        }
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 1rem 2rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header .branding a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+        header .branding a:hover {
+            color: #4CAF50;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .admin-panel {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #222;
+        }
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input, textarea {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            padding: 0.75rem;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #388E3C, #4CAF50);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .preview-container {
+            margin: 1rem 0;
+            text-align: center;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        #imagePreview:hover {
+            transform: scale(1.02);
+        }
+        .login-button {
+            display: block;
+            margin: 1rem auto;
+            padding: 0.75rem 2rem;
+        }
+        .success-message {
+            color: #4CAF50;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 500;
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            background: #f1f1f1;
+            border-radius: 5px;
+            margin: 1rem 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .back-link {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .back-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link a:hover {
+            color: #388E3C;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="branding">
+            <a href="/">Picload</a>
+        </div>
+        <div class="admin-link">
+            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Login Section -->
+        <div class="admin-panel" id="loginSection">
+            <h2>Admin Area</h2>
+            <p>You need to log in to access the admin features.</p>
+            <button class="login-button" onclick="netlifyIdentity.open()">Log in</button>
+        </div>
+        
+        <!-- Upload Section -->
+        <div class="admin-panel" id="uploadSection" style="display: none;">
+            <h2>Upload New Photo</h2>
+            
+            <div class="success-message" id="successMessage">Photo uploaded successfully!</div>
+            
+            <form class="upload-form" id="uploadForm">
+                <input type="file" id="photoUpload" accept="image/*" required>
+                
+                <div class="preview-container">
+                    <img id="imagePreview" alt="Image Preview">
+                </div>
+                
+                <input type="text" id="photoTitle" placeholder="Photo Title" required>
+                <textarea id="photoDescription" placeholder="Photo Description (optional)" rows="3"></textarea>
+                <input type="text" id="photoTags" placeholder="Tags (comma-separated, e.g., nature, sunset)" required>
+                
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                
+                <button type="submit" id="uploadButton">Upload Photo</button>
+            </form>
+            
+        </div>
+        
+        <div class="back-link">
+            <a href="index.html">Back to Gallery</a>
+        </div>
+    </div>
+    
+    <script>
+        netlifyIdentity.on('init', user => {
+            if (user) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('uploadSection').style.display = 'block';
+            }
+        });
+        
+        netlifyIdentity.on('login', user => {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block';
+        });
+        
+        netlifyIdentity.on('logout', () => {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('uploadSection').style.display = 'none';
+        });
+        
+        document.getElementById('photoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const imagePreview = document.getElementById('imagePreview');
+            const title = document.getElementById('photoTitle').value.trim();
+            const description = document.getElementById('photoDescription').value.trim();
+            const tagsInput = document.getElementById('photoTags').value.trim();
+            const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
+            const uploadButton = document.getElementById('uploadButton');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const successMessage = document.getElementById('successMessage');
+            
+            if (!imagePreview.src || !title || tags.length === 0) {
+                alert('Please complete all required fields: image, title, and at least one tag');
+                return;
+            }
+            
+            progressContainer.style.display = 'block';
+            uploadButton.disabled = true;
+            uploadButton.textContent = 'Uploading...';
+            
+            try {
+                const token = netlifyIdentity.currentUser().token.access_token;
+                const data = {
+                    image: imagePreview.src,
+                    title,
+                    description,
+                    tags
+                };
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 90) progressBar.style.width = progress + '%';
+                }, 300);
+                
+                const response = await fetch('/.netlify/functions/upload-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Upload failed: ${errorText}`);
+                }
+                
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                
+                await response.json();
+                
+                successMessage.style.display = 'block';
+                setTimeout(() => successMessage.style.display = 'none', 3000);
+                
+                document.getElementById('uploadForm').reset();
+                imagePreview.style.display = 'none';
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+            } catch (error) {
+                alert('Upload failed: ' + error.message);
+                console.error(error);
+            } finally {
+                uploadButton.disabled = false;
+                uploadButton.textContent = 'Upload Photo';
+            }
+        });
+    </script>
+</body>
+</html>

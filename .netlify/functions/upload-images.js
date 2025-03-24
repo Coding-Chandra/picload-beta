@@ -10,42 +10,46 @@ cloudinary.config({
 
 exports.handler = async (event) => {
   try {
-    console.log('Function invoked - HTTP Method:', event.httpMethod);
+    console.log('Upload function invoked');
     
-    // Check if the request is a POST
+    // Check method
     if (event.httpMethod !== 'POST') {
       return {
         statusCode: 405,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ error: 'Method not allowed' }),
       };
     }
 
-    console.log('Request headers:', JSON.stringify(event.headers));
-    
-    // Check if the body exists
+    // Ensure body exists
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'No data provided' }),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Request body is empty' }),
       };
     }
 
-    // Parse the JSON data from the request body
+    // Parse JSON body
     let data;
     try {
       data = JSON.parse(event.body);
-      console.log('Received data structure:', {
-        hasTitle: !!data.title,
-        hasDescription: !!data.description,
-        hasTags: !!data.tags,
-        hasImage: !!data.image,
-        imageLength: data.image ? data.image.length : 0
-      });
-    } catch (parseError) {
-      console.error('Error parsing JSON:', parseError);
+      console.log('Request data parsed successfully');
+    } catch (e) {
+      console.error('JSON parse error:', e.message);
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Invalid JSON format in request body' }),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Invalid JSON in request body' }),
       };
     }
 
@@ -53,111 +57,169 @@ exports.handler = async (event) => {
     if (!data.image) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required field: image' }),
-      };
-    }
-    
-    if (!data.title) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required field: title' }),
-      };
-    }
-    
-    if (!data.tags) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required field: tags' }),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Missing image data' }),
       };
     }
 
-    // Check if image is a valid data URL
-    if (!data.image.startsWith('data:') || !data.image.includes(';base64,')) {
+    if (!data.title) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Invalid image format: must be a data URL' }),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Missing title' }),
+      };
+    }
+
+    // Check image format
+    if (!data.image.startsWith('data:image/')) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Invalid image format - must be a data URL starting with data:image/' }),
+      };
+    }
+
+    // Extract the base64 content from the dataURL (simple but effective way)
+    const base64Data = data.image.split(',')[1];
+    if (!base64Data) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ error: 'Could not extract base64 data from image' }),
+      };
+    }
+
+    // Estimate file size (base64 is ~33% larger than binary)
+    const estimatedSizeInBytes = Math.ceil((base64Data.length * 3) / 4);
+    const estimatedSizeInMB = estimatedSizeInBytes / (1024 * 1024);
+    
+    console.log(`Estimated file size: ${estimatedSizeInMB.toFixed(2)} MB`);
+
+    // Check size limits
+    if (estimatedSizeInMB > 8) { // Setting a safety margin below Cloudinary's 10MB limit
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          error: `File too large (${estimatedSizeInMB.toFixed(2)} MB). Please use a smaller image (under 8MB).` 
+        }),
       };
     }
 
     // Process tags
-    let tagArray = [];
-    if (Array.isArray(data.tags)) {
-      tagArray = data.tags;
-    } else if (typeof data.tags === 'string') {
-      tagArray = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    }
-    
-    console.log('Processed tags:', tagArray);
-    console.log('Uploading to Cloudinary...');
+    const tagArray = Array.isArray(data.tags) 
+      ? data.tags 
+      : (typeof data.tags === 'string' 
+        ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
+        : []);
 
-    // Upload to Cloudinary directly from the base64 data URL
+    console.log('Tags:', tagArray);
+    console.log('Starting Cloudinary upload process...');
+
+    // Handle Cloudinary upload with increased timeout
     try {
+      const uploadOptions = {
+        folder: 'picload',
+        public_id: `${Date.now()}`,
+        resource_type: 'image',
+        timeout: 60000, // 60-second timeout for large uploads
+        context: {
+          title: data.title,
+          description: data.description || '',
+          tags: tagArray.join(',')
+        }
+      };
+      
+      console.log('Upload options:', uploadOptions);
+      
       const uploadResult = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload(
           data.image,
-          {
-            folder: 'picload',
-            public_id: `${Date.now()}`,
-            resource_type: 'image',
-            context: {
-              title: data.title,
-              description: data.description || '',
-              tags: tagArray.join(',')
-            }
-          },
+          uploadOptions,
           (error, result) => {
             if (error) {
-              console.error('Cloudinary upload error:', error);
+              console.error('Cloudinary upload error:', JSON.stringify(error));
               reject(error);
             } else {
-              console.log('Cloudinary upload success');
+              console.log('Cloudinary upload successful');
               resolve(result);
             }
           }
         );
       });
 
-      console.log('Upload complete, URL:', uploadResult.secure_url);
+      console.log('Upload result:', JSON.stringify({ 
+        public_id: uploadResult.public_id,
+        url: uploadResult.secure_url,
+        width: uploadResult.width,
+        height: uploadResult.height 
+      }));
 
-      // Return success response
       return {
         statusCode: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          success: true,
           message: 'Image uploaded successfully',
           data: {
             url: uploadResult.secure_url,
-            public_id: uploadResult.public_id,
-            format: uploadResult.format,
+            publicId: uploadResult.public_id,
             width: uploadResult.width,
             height: uploadResult.height,
+            format: uploadResult.format,
             title: data.title,
             description: data.description || '',
-            tags: tagArray,
-            created_at: new Date().toISOString()
+            tags: tagArray
           }
         }),
       };
     } catch (cloudinaryError) {
-      console.error('Detailed Cloudinary error:', cloudinaryError);
+      console.error('Cloudinary error details:', cloudinaryError);
+      
       return {
         statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ 
-          error: 'Image upload failed', 
-          details: cloudinaryError.message || 'Unknown Cloudinary error'
+          error: 'Cloudinary upload failed', 
+          details: cloudinaryError.message || 'Unknown error during upload',
+          code: cloudinaryError.http_code || cloudinaryError.code || 'unknown'
         }),
       };
     }
-  } catch (error) {
-    console.error('Unhandled error in upload-images:', error);
+  } catch (generalError) {
+    console.error('General function error:', generalError);
+    
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message || 'Unknown error'
+        error: 'Server error',
+        message: generalError.message || 'An unknown error occurred',
+        stack: process.env.NODE_ENV === 'development' ? generalError.stack : undefined
       }),
     };
   }

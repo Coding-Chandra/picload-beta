@@ -1,9 +1,10 @@
 const cloudinary = require('cloudinary').v2;
 
-const config = {
+cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET,
+  max_image_file_size: 10485760, // 10MB limit (adjust as needed)
 };
 console.log('Cloudinary config:', {
   cloud_name: config.cloud_name || 'MISSING',
@@ -84,11 +85,13 @@ exports.handler = async (event) => {
     }
 
     const uploadOptions = {
-      folder: 'photo-gallery',
-      public_id: `${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`, // Unique ID with timestamp
-      tags: tags, // Array of tags
-      context: `alt=${title}|description=${description || ''}|tags=${tags.join(',')}|date=${new Date().toISOString()}`,
-    };
+  folder: 'photo-gallery',
+  public_id: `${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`, // Unique ID with timestamp
+  tags: tags, // Array of tags
+  context: `alt=${title}|description=${description || ''}|tags=${tags.join(',')}|date=${new Date().toISOString()}`,
+  resource_type: 'image', // Make sure the resource type is set to 'image'
+  chunk_size: 10000000, // Set chunk size to 6MB, adjust as needed
+};
     console.log('Upload options:', uploadOptions);
 
     console.log('Starting Cloudinary upload...');

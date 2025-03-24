@@ -1,6 +1,5 @@
 const cloudinary = require('cloudinary').v2;
 
-// Configure Cloudinary with environment variables
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -10,6 +9,18 @@ cloudinary.config({
 
 exports.handler = async (event) => {
   try {
+    if (event.httpMethod === 'OPTIONS') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        },
+        body: ''
+      };
+    }
+
     if (event.httpMethod !== 'POST') {
       return {
         statusCode: 405,
@@ -24,11 +35,10 @@ exports.handler = async (event) => {
       return {
         statusCode: 400,
         headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Missing required fields: title and tags' })
+        body: JSON.stringify({ error: 'Missing required fields' })
       };
     }
 
-    // Generate a signature for the upload
     const timestamp = Math.round(new Date().getTime() / 1000);
     const publicId = `${Date.now()}`;
     const paramsToSign = {
@@ -38,18 +48,17 @@ exports.handler = async (event) => {
       context: `title=${title}|description=${description || ''}|tags=${tags}`
     };
 
-    const signature = cloudinary.utils.api_sign_request(
-      paramsToSign,
-      process.env.CLOUDINARY_API_SECRET
-    );
+    const signature = cloudinary.utils.api_sign_request(paramsToSign, process.env.CLOUDINARY_API_SECRET);
 
-    // Return the signed upload parameters with the correct URL
+    console.log('Generated upload URL:', `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`);
+    console.log('Cloud Name:', process.env.CLOUDINARY_CLOUD_NAME);
+
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS', // Add for CORS
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization' // Add for CORS
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       },
       body: JSON.stringify({
         uploadUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -64,7 +73,7 @@ exports.handler = async (event) => {
       })
     };
   } catch (error) {
-    console.error('Error generating signed URL:', error);
+    console.error('Error:', error);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },

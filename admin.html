@@ -198,108 +198,120 @@
     </div>
     
     <script>
-        netlifyIdentity.on('init', user => {
-            if (user) {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('uploadSection').style.display = 'block';
-            }
-        });
-        
-        netlifyIdentity.on('login', user => {
+    netlifyIdentity.on('init', user => {
+        if (user) {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('uploadSection').style.display = 'block';
-        });
-        
-        netlifyIdentity.on('logout', () => {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('uploadSection').style.display = 'none';
-        });
-        
-        document.getElementById('photoUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('imagePreview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
+        }
+    });
     
-    const fileInput = document.getElementById('photoUpload');
-    const title = document.getElementById('photoTitle').value.trim();
-    const description = document.getElementById('photoDescription').value.trim();
-    const tagsInput = document.getElementById('photoTags').value.trim();
-    const tags = tagsInput;
-    const uploadButton = document.getElementById('uploadButton');
-    const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    const successMessage = document.getElementById('successMessage');
+    netlifyIdentity.on('login', user => {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('uploadSection').style.display = 'block';
+    });
     
-    if (!fileInput.files[0] || !title || !tags) {
-        alert('Please complete all required fields: image, title, and at least one tag');
-        return;
-    }
+    netlifyIdentity.on('logout', () => {
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('uploadSection').style.display = 'none';
+    });
     
-    progressContainer.style.display = 'block';
-    uploadButton.disabled = true;
-    uploadButton.textContent = 'Uploading...';
+    document.getElementById('photoUpload').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
     
-    try {
-        const token = netlifyIdentity.currentUser().token.access_token;
+    document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
         
-        // Create FormData object
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-        formData.append('title', title);
-        formData.append('description', description);
-        formData.append('tags', tags);
+        const fileInput = document.getElementById('photoUpload');
+        const title = document.getElementById('photoTitle').value.trim();
+        const description = document.getElementById('photoDescription').value.trim();
+        const tagsInput = document.getElementById('photoTags').value.trim();
+        const uploadButton = document.getElementById('uploadButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const successMessage = document.getElementById('successMessage');
         
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            if (progress <= 90) progressBar.style.width = progress + '%';
-        }, 300);
-        
-        const response = await fetch('/.netlify/functions/upload-images', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-                // Don't set Content-Type header; FormData will set it automatically with boundary
-            },
-            body: formData
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Upload failed: ${errorText}`);
+        if (!fileInput.files[0] || !title || !tagsInput) {
+            alert('Please complete all required fields: image, title, and at least one tag');
+            return;
         }
         
-        clearInterval(interval);
-        progressBar.style.width = '100%';
+        progressContainer.style.display = 'block';
+        uploadButton.disabled = true;
+        uploadButton.textContent = 'Uploading...';
         
-        await response.json();
-        
-        successMessage.style.display = 'block';
-        setTimeout(() => successMessage.style.display = 'none', 3000);
-        
-        document.getElementById('uploadForm').reset();
-        document.getElementById('imagePreview').style.display = 'none';
-        progressContainer.style.display = 'none';
-        progressBar.style.width = '0%';
-    } catch (error) {
-        alert('Upload failed: ' + error.message);
-        console.error(error);
-    } finally {
-        uploadButton.disabled = false;
-        uploadButton.textContent = 'Upload Photo';
-    }
-});
+        try {
+            const file = fileInput.files[0];
+            const cloudName = 'your_cloudinary_cloud_name'; // Replace with your Cloudinary cloud name
+            const uploadPreset = 'picload_unsigned'; // Your unsigned preset name
+            
+            // Convert file to data URL
+            const reader = new FileReader();
+            const dataUrl = await new Promise((resolve) => {
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+            
+            // Prepare Cloudinary upload data
+            const uploadData = {
+                file: dataUrl,
+                upload_preset: uploadPreset,
+                folder: 'picload',
+                public_id: `${Date.now()}`,
+                context: `title=${title}|description=${description}|tags=${tagsInput}`
+            };
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                if (progress <= 90) progressBar.style.width = progress + '%';
+            }, 300);
+            
+            // Upload directly to Cloudinary
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: JSON.stringify(uploadData),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Upload failed: ${errorText}`);
+            }
+            
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+            
+            const result = await response.json();
+            
+            successMessage.style.display = 'block';
+            setTimeout(() => successMessage.style.display = 'none', 3000);
+            
+            document.getElementById('uploadForm').reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+            
+            console.log('Upload successful:', result);
+        } catch (error) {
+            alert('Upload failed: ' + error.message);
+            console.error(error);
+        } finally {
+            uploadButton.disabled = false;
+            uploadButton.textContent = 'Upload Photo';
+        }
+    });
     </script>
 </body>
 </html>

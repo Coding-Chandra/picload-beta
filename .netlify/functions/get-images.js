@@ -17,7 +17,8 @@ exports.handler = async () => {
       tags: true,
     });
 
-    console.log('Fetched resources:', result.resources.map(r => r.public_id)); // Debug
+    console.log('Total resources found:', result.resources.length); // Debug total count
+    console.log('Fetched public_ids:', result.resources.map(r => r.public_id)); // Debug IDs
 
     const images = result.resources.map((resource) => ({
       id: resource.public_id,

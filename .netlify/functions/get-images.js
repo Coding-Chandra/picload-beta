@@ -11,19 +11,37 @@ exports.handler = async (event) => {
     const queryParams = event.queryStringParameters || {};
     const nextCursor = queryParams.next_cursor || null;
 
-    const result = await cloudinary.api.resources({
+    // Fetch all images of all types in photo-gallery
+    let allResources = [];
+    
+    // Fetch signed uploads
+    const signedResult = await cloudinary.api.resources({
       resource_type: 'image',
-      prefix: 'photo-gallery', // No 'type' filter to include all upload types
+      type: 'upload',
+      prefix: 'photo-gallery',
       max_results: 100,
       context: true,
       tags: true,
       next_cursor: nextCursor,
     });
+    allResources = allResources.concat(signedResult.resources);
 
-    console.log('Total resources found:', result.resources.length);
-    console.log('Fetched public_ids:', result.resources.map(r => ({ public_id: r.public_id, type: r.type }))); // Debug with type
+    // Fetch unsigned uploads
+    const unsignedResult = await cloudinary.api.resources({
+      resource_type: 'image',
+      type: 'unsigned',
+      prefix: 'photo-gallery',
+      max_results: 100,
+      context: true,
+      tags: true,
+      next_cursor: nextCursor,
+    });
+    allResources = allResources.concat(unsignedResult.resources);
 
-    const images = result.resources.map((resource) => ({
+    console.log('Total resources found:', allResources.length);
+    console.log('Fetched public_ids with types:', allResources.map(r => ({ public_id: r.public_id, type: r.type })));
+
+    const images = allResources.map((resource) => ({
       id: resource.public_id,
       url: resource.secure_url,
       title: resource.context?.custom?.alt || resource.public_id.split('/').pop(),
@@ -43,7 +61,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         images,
-        next_cursor: result.next_cursor || null,
+        next_cursor: signedResult.next_cursor || unsignedResult.next_cursor || null, // Use whichever has more pages
       }),
     };
   } catch (error) {

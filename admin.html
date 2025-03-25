@@ -6,6 +6,7 @@
     <title>Picload - Admin</title>
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
+        /* Your existing CSS remains unchanged */
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
@@ -229,7 +230,8 @@
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             
-            const imagePreview = document.getElementById('imagePreview');
+            const fileInput = document.getElementById('photoUpload');
+            const file = fileInput.files[0];
             const title = document.getElementById('photoTitle').value.trim();
             const description = document.getElementById('photoDescription').value.trim();
             const tagsInput = document.getElementById('photoTags').value.trim();
@@ -239,7 +241,7 @@
             const progressBar = document.getElementById('progressBar');
             const successMessage = document.getElementById('successMessage');
             
-            if (!imagePreview.src || !title || tags.length === 0) {
+            if (!file || !title || tags.length === 0) {
                 alert('Please complete all required fields: image, title, and at least one tag');
                 return;
             }
@@ -249,44 +251,40 @@
             uploadButton.textContent = 'Uploading...';
             
             try {
-                const token = netlifyIdentity.currentUser().token.access_token;
-                const data = {
-                    image: imagePreview.src,
-                    title,
-                    description,
-                    tags
-                };
-                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'picload_unsigned');
+                formData.append('public_id', `${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`);
+                formData.append('tags', tags.join(','));
+                if (description) formData.append('context', `description=${description}|title=${title}`);
+
+                // Simulate progress (since we can't get exact upload progress easily with fetch)
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 10;
                     if (progress <= 90) progressBar.style.width = progress + '%';
                 }, 300);
                 
-                const response = await fetch('/.netlify/functions/upload-images', {
+                const response = await fetch('https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(data)
+                    body: formData,
                 });
                 
+                clearInterval(interval);
+                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Upload failed: ${errorText}`);
+                    const error = await response.json();
+                    throw new Error(error.error.message);
                 }
                 
-                clearInterval(interval);
                 progressBar.style.width = '100%';
-                
-                await response.json();
+                const result = await response.json();
                 
                 successMessage.style.display = 'block';
                 setTimeout(() => successMessage.style.display = 'none', 3000);
                 
                 document.getElementById('uploadForm').reset();
-                imagePreview.style.display = 'none';
+                document.getElementById('imagePreview').style.display = 'none';
                 progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
             } catch (error) {

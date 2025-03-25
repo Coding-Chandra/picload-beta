@@ -17,6 +17,8 @@ exports.handler = async () => {
       tags: true,
     });
 
+    console.log('Fetched resources:', result.resources.map(r => r.public_id)); // Debug
+
     const images = result.resources.map((resource) => ({
       id: resource.public_id,
       url: resource.secure_url,

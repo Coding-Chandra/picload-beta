@@ -8,14 +8,16 @@ cloudinary.config({
 
 exports.handler = async (event) => {
   try {
+    console.log('Cloudinary config:', {
+      cloud_name: process.env.CLOUD_NAME || 'MISSING',
+      api_key: process.env.API_KEY ? '[REDACTED]' : 'MISSING',
+      api_secret: process.env.API_SECRET ? '[REDACTED]' : 'MISSING',
+    });
+
     const queryParams = event.queryStringParameters || {};
     const nextCursor = queryParams.next_cursor || null;
 
-    // Fetch all images of all types in photo-gallery
-    let allResources = [];
-    
-    // Fetch signed uploads
-    const signedResult = await cloudinary.api.resources({
+    console.log('Fetching resources with params:', {
       resource_type: 'image',
       type: 'upload',
       prefix: 'photo-gallery',
@@ -24,24 +26,22 @@ exports.handler = async (event) => {
       tags: true,
       next_cursor: nextCursor,
     });
-    allResources = allResources.concat(signedResult.resources);
 
-    // Fetch unsigned uploads
-    const unsignedResult = await cloudinary.api.resources({
+    const result = await cloudinary.api.resources({
       resource_type: 'image',
-      type: 'unsigned',
+      type: 'upload', // Explicitly fetch 'upload' type, which includes unsigned
       prefix: 'photo-gallery',
       max_results: 100,
       context: true,
       tags: true,
       next_cursor: nextCursor,
     });
-    allResources = allResources.concat(unsignedResult.resources);
 
-    console.log('Total resources found:', allResources.length);
-    console.log('Fetched public_ids with types:', allResources.map(r => ({ public_id: r.public_id, type: r.type })));
+    console.log('Total resources found this page:', result.resources.length);
+    console.log('Fetched public_ids:', result.resources.map(r => ({ public_id: r.public_id, type: r.type })));
+    console.log('Next cursor:', result.next_cursor);
 
-    const images = allResources.map((resource) => ({
+    const images = result.resources.map((resource) => ({
       id: resource.public_id,
       url: resource.secure_url,
       title: resource.context?.custom?.alt || resource.public_id.split('/').pop(),
@@ -61,18 +61,28 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         images,
-        next_cursor: signedResult.next_cursor || unsignedResult.next_cursor || null, // Use whichever has more pages
+        next_cursor: result.next_cursor || null,
       }),
     };
   } catch (error) {
-    console.error('Error fetching images:', error);
+    console.error('Error fetching images:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      http_code: error.http_code,
+      response: error.response ? JSON.stringify(error.response) : 'No response',
+    });
     return {
       statusCode: 500,
       headers: { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({ error: 'Failed to fetch images', details: error.message }),
+      body: JSON.stringify({ 
+        error: 'Failed to fetch images', 
+        details: error.message || 'Unknown error',
+        http_code: error.http_code || 'N/A',
+      }),
     };
   }
 };

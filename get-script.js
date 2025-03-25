@@ -40,6 +40,20 @@ async function loadImages() {
     }
 }
 
+async function fetchImages() {
+  let images = [];
+  let nextCursor = null;
+  do {
+    const response = await fetch(`/.netlify/functions/get-images${nextCursor ? `?next_cursor=${nextCursor}` : ''}`);
+    const data = await response.json();
+    images = images.concat(data.images);
+    nextCursor = data.next_cursor;
+  } while (nextCursor);
+  console.log('All images:', images);
+  // Render images here
+}
+fetchImages();
+
 function displayImages(images) {
     if (!images || images.length === 0) {
         gallery.style.display = 'none';

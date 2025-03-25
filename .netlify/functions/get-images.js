@@ -59,10 +59,7 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({
-        images,
-        next_cursor: result.next_cursor || null,
-      }),
+      body: JSON.stringify(images), // Return flat array instead of object
     };
   } catch (error) {
     console.error('Error fetching images:', {

@@ -228,6 +228,23 @@ header {
     padding: 1rem;
 }
 
+/* Add to main-style.css */
+.photo-info a {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #4CAF50;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+
+.photo-info a:hover {
+  background: #388E3C;
+}
+
 .photo-info h3 {
     font-size: 1.25rem;
     font-weight: 600;

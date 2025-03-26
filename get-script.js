@@ -65,21 +65,21 @@ document.addEventListener('DOMContentLoaded', () => {
     gallery.innerHTML = images.map(image => {
       const cleanTitle = image.title.replace(/-\d{13}$/, '');
       return `
-        <div class="gallery-item">
+        <div class="photo-card">
           <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
-          <div class="gallery-info">
+          <div class="photo-info">
             <h3>${cleanTitle}</h3>
-            <p class="description">${image.description || ''}</p>
-            <p class="tags">Tags: ${image.tags.join(', ')}</p>
-            <p class="date">Date: ${new Date(image.date).toLocaleDateString()}</p>
-            <p class="downloads">Downloads: ${image.downloads}</p>
-            <a href="${image.url}" download="${cleanTitle}.jpg" class="download-link">Download</a>
+            <p>${image.description || ''}</p>
+            <p>Tags: ${image.tags.join(', ')}</p>
+            <p>Date: ${new Date(image.date).toLocaleDateString()}</p>
+            <p>Downloads: ${image.downloads}</p>
+            <a href="${image.url}" download="${cleanTitle}.jpg">Download</a>
           </div>
         </div>
       `;
     }).join('');
 
-    gallery.style.display = 'grid'; // Ensure this matches your CSS
+    gallery.style.display = 'grid';
   }
 
   function sortImages(images, sortBy) {

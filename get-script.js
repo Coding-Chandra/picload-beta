@@ -26,13 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
       const data = await response.json();
-      console.log('Fetched data:', data);
+      console.log('Raw fetched data:', JSON.stringify(data, null, 2));
 
-      if (!Array.isArray(data.images)) {
+      let images = [];
+      if (Array.isArray(data)) {
+        images = data;
+      } else if (data.images && Array.isArray(data.images)) {
+        images = data.images;
+      } else {
         throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
       }
 
-      allImages = data.images;
+      allImages = images;
       renderGallery(allImages);
 
       const allTags = [...new Set(allImages.flatMap(img => img.tags))];
@@ -58,24 +63,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     gallery.innerHTML = images.map(image => {
-      // Clean title: remove timestamp suffix (e.g., "-1742580000000")
       const cleanTitle = image.title.replace(/-\d{13}$/, '');
       return `
         <div class="gallery-item">
           <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
           <div class="gallery-info">
             <h3>${cleanTitle}</h3>
-            <p>${image.description || ''}</p>
-            <p>Tags: ${image.tags.join(', ')}</p>
-            <p>Date: ${new Date(image.date).toLocaleDateString()}</p>
-            <p>Downloads: ${image.downloads}</p>
-            <a href="${image.url}" download="${cleanTitle}.jpg">Download</a>
+            <p class="description">${image.description || ''}</p>
+            <p class="tags">Tags: ${image.tags.join(', ')}</p>
+            <p class="date">Date: ${new Date(image.date).toLocaleDateString()}</p>
+            <p class="downloads">Downloads: ${image.downloads}</p>
+            <a href="${image.url}" download="${cleanTitle}.jpg" class="download-link">Download</a>
           </div>
         </div>
       `;
     }).join('');
 
-    gallery.style.display = 'grid';
+    gallery.style.display = 'grid'; // Ensure this matches your CSS
   }
 
   function sortImages(images, sortBy) {

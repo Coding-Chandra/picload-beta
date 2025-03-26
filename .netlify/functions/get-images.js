@@ -29,7 +29,7 @@ exports.handler = async (event) => {
 
     const result = await cloudinary.api.resources({
       resource_type: 'image',
-      type: 'upload', // Explicitly fetch 'upload' type, which includes unsigned
+      type: 'upload',
       prefix: 'photo-gallery',
       max_results: 100,
       context: true,
@@ -37,21 +37,29 @@ exports.handler = async (event) => {
       next_cursor: nextCursor,
     });
 
-    console.log('Total resources found this page:', result.resources.length);
-    console.log('Fetched public_ids:', result.resources.map(r => ({ public_id: r.public_id, type: r.type })));
-    console.log('Next cursor:', result.next_cursor);
+    console.log('Raw Cloudinary result:', JSON.stringify(result, null, 2));
 
-    const images = result.resources.map((resource) => ({
-      id: resource.public_id,
-      url: resource.secure_url,
-      title: resource.context?.custom?.alt || resource.public_id.split('/').pop(),
-      description: resource.context?.custom?.description || '',
-      tags: resource.tags && resource.tags.length > 0 
-        ? resource.tags 
-        : (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
-      date: resource.context?.custom?.date || resource.created_at,
-      downloads: parseInt(resource.context?.custom?.downloads) || 0,
-    }));
+    if (!Array.isArray(result.resources)) {
+      throw new Error(`Cloudinary response.resources is not an array: ${JSON.stringify(result)}`);
+    }
+
+    const images = result.resources.map((resource) => {
+      console.log('Processing resource:', resource.public_id);
+      return {
+        id: resource.public_id,
+        url: resource.secure_url,
+        title: resource.context?.custom?.alt || resource.public_id.split('/').pop(),
+        description: resource.context?.custom?.description || '',
+        tags: resource.tags && resource.tags.length > 0 
+          ? resource.tags 
+          : (resource.context?.custom?.tags ? resource.context.custom.tags.split(',') : []),
+        date: resource.context?.custom?.date || resource.created_at,
+        downloads: parseInt(resource.context?.custom?.downloads) || 0,
+      };
+    });
+
+    console.log('Final images array length:', images.length);
+    console.log('Response being sent:', JSON.stringify({ images, next_cursor: result.next_cursor || null }, null, 2));
 
     return {
       statusCode: 200,
@@ -59,7 +67,10 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify(images), // Return flat array instead of object
+      body: JSON.stringify({
+        images,
+        next_cursor: result.next_cursor || null,
+      }),
     };
   } catch (error) {
     console.error('Error fetching images:', {

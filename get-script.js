@@ -1,152 +1,126 @@
-const gallery = document.getElementById('photoGallery');
-const emptyGallery = document.getElementById('emptyGallery');
-const loadingMessage = document.getElementById('loadingMessage');
-const errorMessage = document.getElementById('errorMessage');
-const categoryFilter = document.getElementById('categoryFilter');
-const searchBar = document.getElementById('searchBar');
-const sortSelect = document.getElementById('sortSelect');
-const preloader = document.getElementById('preloader');
-let imagesData = [];
+// get-script.js
+document.addEventListener('DOMContentLoaded', () => {
+  const gallery = document.getElementById('photoGallery');
+  const loadingMessage = document.getElementById('loadingMessage');
+  const errorMessage = document.getElementById('errorMessage');
+  const emptyGallery = document.getElementById('emptyGallery');
+  const searchBar = document.getElementById('searchBar');
+  const sortSelect = document.getElementById('sortSelect');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const preloader = document.getElementById('preloader');
 
-async function loadImages() {
+  let allImages = [];
+
+  window.addEventListener('load', () => {
+    preloader.style.display = 'none';
+  });
+
+  async function fetchImages() {
     try {
-        loadingMessage.style.display = 'block';
-        gallery.style.display = 'none';
-        emptyGallery.style.display = 'none';
-        errorMessage.style.display = 'none';
+      loadingMessage.style.display = 'block';
+      gallery.style.display = 'none';
+      errorMessage.style.display = 'none';
+      emptyGallery.style.display = 'none';
 
-        const response = await fetch('/.netlify/functions/get-images');
-        if (!response.ok) throw new Error(`Fetch failed with status ${response.status}`);
+      const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`);
+      if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
-        imagesData = await response.json();
-        console.log('Raw images data:', imagesData);
-        loadingMessage.style.display = 'none';
+      const data = await response.json();
+      console.log('Fetched data:', data);
 
-        if (!Array.isArray(imagesData)) throw new Error('Response is not an array');
+      if (!Array.isArray(data.images)) {
+        throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
+      }
 
-        displayImages(imagesData);
-        updateFilters();
+      allImages = data.images;
+      renderGallery(allImages);
 
-        // Fade out preloader after images load
-        preloader.classList.add('fade-out');
+      const allTags = [...new Set(allImages.flatMap(img => img.tags))];
+      categoryFilter.innerHTML = allTags.map(tag => `
+        <label><input type="checkbox" value="${tag}" class="category-checkbox"> ${tag}</label>
+      `).join('');
+
     } catch (error) {
-        console.error('Error in loadImages:', error);
-        loadingMessage.style.display = 'none';
-        errorMessage.style.display = 'block';
-        errorMessage.textContent = `Error: ${error.message}`;
-        gallery.style.display = 'none';
-        emptyGallery.style.display = 'none';
-        preloader.classList.add('fade-out'); // Fade out even on error
+      console.error('Error fetching images:', error);
+      errorMessage.textContent = `Error: ${error.message}`;
+      errorMessage.style.display = 'block';
+      loadingMessage.style.display = 'none';
     }
-}
+  }
 
-function displayImages(images) {
-    if (!images || images.length === 0) {
-        gallery.style.display = 'none';
-        emptyGallery.style.display = 'block';
-        return;
+  function renderGallery(images) {
+    loadingMessage.style.display = 'none';
+
+    if (images.length === 0) {
+      emptyGallery.style.display = 'block';
+      gallery.style.display = 'none';
+      return;
     }
+
+    gallery.innerHTML = images.map(image => {
+      // Clean title: remove timestamp suffix (e.g., "-1742580000000")
+      const cleanTitle = image.title.replace(/-\d{13}$/, '');
+      return `
+        <div class="gallery-item">
+          <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
+          <div class="gallery-info">
+            <h3>${cleanTitle}</h3>
+            <p>${image.description || ''}</p>
+            <p>Tags: ${image.tags.join(', ')}</p>
+            <p>Date: ${new Date(image.date).toLocaleDateString()}</p>
+            <p>Downloads: ${image.downloads}</p>
+            <a href="${image.url}" download="${cleanTitle}.jpg">Download</a>
+          </div>
+        </div>
+      `;
+    }).join('');
 
     gallery.style.display = 'grid';
-    emptyGallery.style.display = 'none';
-    gallery.innerHTML = '';
+  }
 
-    images.forEach((image) => {
-        if (!image.url || !image.title) {
-            console.warn('Image missing required fields:', image);
-            return;
-        }
-        const card = document.createElement('div');
-        card.className = 'photo-card';
-        card.setAttribute('data-tags', image.tags ? image.tags.join(',') : '');
-        card.setAttribute('data-date', image.date || '');
-        card.setAttribute('data-downloads', image.downloads || 0);
-        card.innerHTML = `
-            <img src="${image.url}" alt="${image.title}" onerror="console.error('Image failed to load:', '${image.url}')">
-            <div class="photo-info">
-                <h3>${image.title}</h3>
-                <p>${image.description || 'No description'}</p>
-            </div>
-        `;
-        card.addEventListener('click', () => {
-            window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
-        });
-        gallery.appendChild(card);
-    });
-}
+  function sortImages(images, sortBy) {
+    const sorted = [...images];
+    switch (sortBy) {
+      case 'new-to-old':
+        return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+      case 'old-to-new':
+        return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+      case 'most-downloaded':
+        return sorted.sort((a, b) => b.downloads - a.downloads);
+      case 'shuffled':
+        return sorted.sort(() => Math.random() - 0.5);
+      default:
+        return sorted;
+    }
+  }
 
-function updateFilters() {
-    const allTags = new Set();
-    imagesData.forEach(image => {
-        if (image.tags) image.tags.forEach(tag => allTags.add(tag));
-    });
-
-    categoryFilter.innerHTML = '<button class="filter-btn active" data-category="all">All Photos</button>';
-    allTags.forEach(tag => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.setAttribute('data-category', tag);
-        btn.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-        categoryFilter.appendChild(btn);
-    });
-}
-
-function applyCurrentFilterAndSort(searchQuery = '') {
-    const activeFilter = document.querySelector('.filter-btn.active')?.getAttribute('data-category') || 'all';
-    const activeSort = sortSelect.value || 'new-to-old';
-
-    let filteredImages = imagesData.slice();
-    if (activeFilter !== 'all') {
-        filteredImages = filteredImages.filter(image => 
-            image.tags && image.tags.includes(activeFilter)
-        );
-    } else {
-        filteredImages = imagesData.slice();
+  function updateGallery() {
+    let filteredImages = [...allImages];
+    const searchTerm = searchBar.value.toLowerCase();
+    if (searchTerm) {
+      filteredImages = filteredImages.filter(image =>
+        image.title.toLowerCase().includes(searchTerm) ||
+        image.description.toLowerCase().includes(searchTerm) ||
+        image.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+      );
     }
 
-    if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filteredImages = filteredImages.filter(image => 
-            (image.tags && image.tags.some(tag => tag.toLowerCase().includes(query))) ||
-            (image.description && image.description.toLowerCase().includes(query)) ||
-            image.title.toLowerCase().includes(query)
-        );
+    const selectedCategories = Array.from(document.querySelectorAll('.category-checkbox:checked'))
+      .map(cb => cb.value);
+    if (selectedCategories.length > 0) {
+      filteredImages = filteredImages.filter(image =>
+        selectedCategories.every(cat => image.tags.includes(cat))
+      );
     }
 
-    sortImages(filteredImages, activeSort);
-    displayImages(filteredImages);
-}
+    const sortBy = sortSelect.value;
+    filteredImages = sortImages(filteredImages, sortBy);
+    renderGallery(filteredImages);
+  }
 
-function sortImages(images, sortType) {
-    switch (sortType) {
-        case 'new-to-old':
-            images.sort((a, b) => new Date(b.date) - new Date(a.date));
-            break;
-        case 'old-to-new':
-            images.sort((a, b) => new Date(a.date) - new Date(b.date));
-            break;
-        case 'most-downloaded':
-            images.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
-            break;
-        case 'shuffled':
-            for (let i = images.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [images[i], images[j]] = [images[j], images[i]];
-            }
-            break;
-    }
-    return images;
-}
+  searchBar.addEventListener('input', updateGallery);
+  sortSelect.addEventListener('change', updateGallery);
+  categoryFilter.addEventListener('change', updateGallery);
 
-document.addEventListener('DOMContentLoaded', loadImages);
-
-sortSelect.addEventListener('change', () => applyCurrentFilterAndSort(searchBar.value));
-searchBar.addEventListener('input', () => applyCurrentFilterAndSort(searchBar.value));
-
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('filter-btn')) {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        applyCurrentFilterAndSort(searchBar.value);
-    }
+  fetchImages();
 });

@@ -65,15 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
     gallery.innerHTML = images.map(image => {
       const cleanTitle = image.title.replace(/-\d{13}$/, '');
       return `
-        <div class="photo-card">
+        <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
           <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
           <div class="photo-info">
             <h3>${cleanTitle}</h3>
-            <p>${image.description || ''}</p>
-            <p>Tags: ${image.tags.join(', ')}</p>
-            <p>Date: ${new Date(image.date).toLocaleDateString()}</p>
-            <p>Downloads: ${image.downloads}</p>
-            <a href="${image.url}" download="${cleanTitle}.jpg">Download</a>
           </div>
         </div>
       `;

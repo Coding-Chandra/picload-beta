@@ -7,13 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchBar = document.getElementById('searchBar');
   const sortSelect = document.getElementById('sortSelect');
   const categoryFilter = document.getElementById('categoryFilter');
-  const preloader = document.getElementById('preloader');
 
   let allImages = [];
-  let activeTag = null; // Track the single active tag
+  let activeTags = new Set();
 
   window.addEventListener('load', () => {
-    preloader.style.display = 'none';
+    document.getElementById('preloader').style.display = 'none';
   });
 
   async function fetchImages() {
@@ -74,34 +73,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderCategoryFilter(images) {
-    const allTags = [...new Set(images.flatMap(img => img.tags))].sort(); // Sort alphabetically
+    const allTags = [...new Set(images.flatMap(img => img.tags))];
     categoryFilter.innerHTML = allTags.map(tag => `
-      <button class="filter-btn${activeTag === tag ? ' active' : ''}" data-tag="${tag}">${tag}</button>
+      <button class="filter-btn" data-tag="${tag}">${tag}</button>
     `).join('');
 
-    // Add click handlers to filter buttons
+    // Add click listeners to filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const tag = btn.getAttribute('data-tag');
-        if (activeTag === tag) {
-          activeTag = null; // Deselect if clicking the active tag
+        const tag = btn.dataset.tag;
+        if (activeTags.has(tag)) {
+          activeTags.delete(tag);
+          btn.classList.remove('active');
         } else {
-          activeTag = tag; // Set new active tag
+          activeTags.add(tag);
+          btn.classList.add('active');
         }
-        updateFilterButtons();
         updateGallery();
       });
-    });
-  }
-
-  function updateFilterButtons() {
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      const tag = btn.getAttribute('data-tag');
-      if (tag === activeTag) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
     });
   }
 
@@ -132,9 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     }
 
-    if (activeTag) {
+    if (activeTags.size > 0) {
       filteredImages = filteredImages.filter(image =>
-        image.tags.includes(activeTag)
+        [...activeTags].every(tag => image.tags.includes(tag))
       );
     }
 

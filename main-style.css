@@ -27,7 +27,7 @@ body {
 }
 
 .preloader-logo {
-    width: 200px; /* Adjust size as needed */
+    width: 200px;
     animation: pulse 1.5s infinite ease-in-out;
 }
 
@@ -43,69 +43,38 @@ body {
 }
 
 header {
-            position: relative; /* For pseudo-element positioning */
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9)); /* Gradient of purple to yellow */
-            color: #fff;
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Retained for boldness */
-        }
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 4px 4px; /* Grainy speckle effect */
-            opacity: 0.3; /* Subtle grain */
-            z-index: -1;
-        }
-        header .branding img {
-            height: auto;
-            transition: opacity 0.3s ease;
-        }
-        header .branding img:hover {
-            opacity: 0.8;
-        }
-        header .admin-link a {
-            color: #2e4a5b; /* Dark teal for better contrast on gradient */
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border: 1px solid #2e4a5b;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-        header .admin-link a:hover {
-            background: #2e4a5b;
-            color: #fff; /* White for contrast on hover */
-        }
-
-.container {
-    max-width: 1400px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
-.controls {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
+    color: #fff;
+    padding: 1rem 2rem;
+    z-index: 10; /* Below category-filter */
+    backdrop-filter: blur(5px);
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-
-.search-bar {
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0.3;
+    z-index: -1;
+}
+header .branding img {
+    height: auto;
+    transition: opacity 0.3s ease;
+}
+header .branding img:hover {
+    opacity: 0.8;
+}
+header .search-bar {
     flex-grow: 1;
+    margin: 0 1rem;
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 50px;
@@ -113,43 +82,43 @@ header {
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.3s ease;
+    mix-blend-mode: screen; /* Full blend mode */
 }
-.search-bar:focus {
+header .search-bar:focus {
     outline: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-
-/* main-style.css */
-.category-filter label {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid #ddd;
-  border-radius: 50px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #555;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  text-transform: capitalize;
+header .admin-link a {
+    color: #2e4a5b;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border: 1px solid #2e4a5b;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+header .admin-link a:hover {
+    background: #2e4a5b;
+    color: #fff;
 }
 
-.category-filter input[type="checkbox"] {
-  display: none; /* Hide default checkbox */
+.category-filter {
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.5rem 2rem;
+    z-index: 20; /* Above header */
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
-
-.category-filter input[type="checkbox"]:checked + span {
-  background: #4CAF50;
-  border-color: #4CAF50;
-  color: #fff;
-  font-weight: 600;
-}
-
-.category-filter label:hover {
-  background: #f0f0f0;
-  border-color: #ccc;
-  color: #333;
+.category-filter::-webkit-scrollbar {
+    display: none;
 }
 .filter-btn {
     padding: 0.5rem 1rem;
@@ -174,6 +143,20 @@ header {
     border-color: #4CAF50;
     color: #fff;
     font-weight: 600;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.controls {
+    display: flex;
+    justify-content: flex-end; /* Sort options on right */
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .sort-options {
@@ -246,23 +229,6 @@ header {
 
 .photo-info {
     padding: 1rem;
-}
-
-/* Add to main-style.css */
-.photo-info a {
-  display: inline-block;
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #4CAF50;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  transition: background 0.3s ease;
-}
-
-.photo-info a:hover {
-  background: #388E3C;
 }
 
 .photo-info h3 {

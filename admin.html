@@ -239,145 +239,107 @@
     </div>
     
     <script>
-        let imagesData = [];
-
-        async function loadImages() {
-            try {
-                const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
-                if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
-                const data = await response.json();
-                console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
-
-                if (!data.images || !Array.isArray(data.images)) {
-                    throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
-                }
-
-                imagesData = data.images;
-                displayPhoto();
-            } catch (error) {
-                console.error('Error loading images:', error);
-                document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
+        netlifyIdentity.on('init', user => {
+            if (user) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('uploadSection').style.display = 'block';
             }
-        }
-
-        function displayPhoto() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const photoId = urlParams.get('id');
-            const image = imagesData.find(img => img.id === photoId);
-
-            if (!image) {
-                document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
-                return;
-            }
-
-            const img = new Image();
-            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_50,c_scale');
-            img.src = thumbnailUrl;
-            img.onload = async () => {
-                const photoImage = document.getElementById('photoImage');
-                photoImage.src = thumbnailUrl;
-                photoImage.alt = image.title.replace(/-\d{13}$/, '');
-                document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
-                document.getElementById('photoDescription').textContent = image.description || 'No description';
-                
-                const response = await fetch(image.url, { method: 'HEAD' });
-                const fileSize = response.headers.get('content-length');
-                document.getElementById('photoFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
-
-                document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
-                document.getElementById('photoDownloads').textContent = image.downloads || 0;
-
-                const tagsContainer = document.getElementById('photoTags');
-                tagsContainer.innerHTML = '';
-                image.tags?.forEach(tag => {
-                    const tagElement = document.createElement('span');
-                    tagElement.className = 'tag';
-                    tagElement.textContent = tag;
-                    tagsContainer.appendChild(tagElement);
-                });
-
-                document.getElementById('downloadBtn').onclick = () => downloadImage(image);
-                displaySuggestions(image);
-            };
-        }
-
-        function displaySuggestions(currentImage) {
-            const suggestionsGrid = document.getElementById('suggestionsGrid');
-            const similarImages = imagesData
-                .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 15);
-
-            suggestionsGrid.innerHTML = '';
-            similarImages.forEach(image => {
-                const card = document.createElement('div');
-                card.className = 'suggestion-card';
-                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
-                card.innerHTML = `
-                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
-                    <p>${image.title.replace(/-\d{13}$/, '')}</p>
-                `;
-                card.addEventListener('click', () => {
-                    window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
-                });
-                suggestionsGrid.appendChild(card);
-            });
-        }
-
-        async function downloadImage(image) {
-            const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url;
-            const img = new Image();
-            img.src = image.url;
-
-            await new Promise(resolve => img.onload = resolve);
-            const isPortrait = img.height > img.width;
-            const maxSize = resolution === 'original' ? null : parseInt(resolution);
-
-            if (maxSize) {
-                const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
-            }
-
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `${image.title.replace(/-\d{13}$/, '')}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-
-                const updateResponse = await fetch('/.netlify/functions/update-downloads', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_id: image.id }),
-                });
-                if (!updateResponse.ok) throw new Error('Failed to update downloads');
-                const updateData = await updateResponse.json();
-
-                image.downloads = updateData.downloads;
-                document.getElementById('photoDownloads').textContent = image.downloads;
-            } catch (error) {
-                console.error('Download failed:', error);
-                alert('Failed to download image.');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadImages();
-            const photoImage = document.getElementById('photoImage');
-            photoImage.addEventListener('contextmenu', e => e.preventDefault());
-            photoImage.addEventListener('dragstart', e => e.preventDefault());
-            document.addEventListener('keydown', e => {
-                if (e.key === 'PrintScreen') {
-                    e.preventDefault();
-                    alert('Screenshots are disabled on this page.');
-                }
-            });
         });
+        
+        netlifyIdentity.on('login', user => {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block';
+        });
+        
+        netlifyIdentity.on('logout', () => {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('uploadSection').style.display = 'none';
+        });
+        
+        document.getElementById('photoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
+  
+  const fileInput = document.getElementById('photoUpload');
+  const file = fileInput.files[0];
+  const title = document.getElementById('photoTitle').value.trim();
+  const description = document.getElementById('photoDescription').value.trim();
+  const tagsInput = document.getElementById('photoTags').value.trim();
+  const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
+  const uploadButton = document.getElementById('uploadButton');
+  const progressContainer = document.getElementById('progressContainer');
+  const progressBar = document.getElementById('progressBar');
+  const successMessage = document.getElementById('successMessage');
+  
+  if (!file || !title || tags.length === 0) {
+    alert('Please complete all required fields: image, title, and at least one tag');
+    return;
+  }
+  
+  progressContainer.style.display = 'block';
+  uploadButton.disabled = true;
+  uploadButton.textContent = 'Uploading...';
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'picload_unsigned'); // Replace with your preset name
+    formData.append('public_id', `photo-gallery/${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`);
+    formData.append('tags', tags.join(','));
+    // Set context with title and description
+    formData.append('context', `alt=${title}|description=${description || ''}`);
+
+    console.log('Uploading to:', 'https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', formData.get('public_id'));
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress <= 90) progressBar.style.width = progress + '%';
+    }, 300);
+    
+    const response = await fetch('https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    clearInterval(interval);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error.message);
+    }
+    
+    progressBar.style.width = '100%';
+    const result = await response.json();
+    console.log('Upload result:', result);
+    
+    successMessage.style.display = 'block';
+    setTimeout(() => successMessage.style.display = 'none', 3000);
+    
+    document.getElementById('uploadForm').reset();
+    document.getElementById('imagePreview').style.display = 'none';
+    progressContainer.style.display = 'none';
+    progressBar.style.width = '0%';
+  } catch (error) {
+    alert('Upload failed: ' + error.message);
+    console.error('Upload error:', error);
+  } finally {
+    uploadButton.disabled = false;
+    uploadButton.textContent = 'Upload Photo';
+  }
+});
     </script>
 </body>
 </html>

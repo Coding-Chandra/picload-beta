@@ -15,6 +15,11 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
+            /* Prevent text selection on entire page (optional, remove if unwanted) */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         header {
             background: rgba(0, 0, 0, 0.8);
@@ -49,6 +54,7 @@
             padding: 2rem;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
+            position: relative; /* For overlay */
         }
         .photo-details img {
             width: 100%;
@@ -56,6 +62,26 @@
             object-fit: contain;
             border-radius: 10px;
             margin-bottom: 1rem;
+            /* Disable dragging */
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none; /* Prevents clicks from interacting with image directly */
+        }
+        /* Transparent overlay to block right-click */
+        .photo-details .image-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .photo-details .image-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 1; /* Above image, below text */
         }
         .photo-details h1 {
             font-size: 2rem;
@@ -141,7 +167,9 @@
     
     <div class="container">
         <div class="photo-details" id="photoDetails">
-            <img id="photoImage" alt="">
+            <div class="image-wrapper">
+                <img id="photoImage" alt="">
+            </div>
             <h1 id="photoTitle"></h1>
             <p><strong>Description:</strong> <span id="photoDescription"></span></p>
             <p><strong>File Size:</strong> <span id="photoFileSize"></span></p>
@@ -168,9 +196,16 @@
 
         async function loadImages() {
             try {
-                const response = await fetch('/.netlify/functions/get-images');
-                if (!response.ok) throw new Error('Fetch failed');
-                imagesData = await response.json();
+                const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
+                if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
+                const data = await response.json();
+                console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
+
+                if (!data.images || !Array.isArray(data.images)) {
+                    throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
+                }
+
+                imagesData = data.images;
                 displayPhoto();
             } catch (error) {
                 console.error('Error loading images:', error);
@@ -191,8 +226,10 @@
             const img = new Image();
             img.src = image.url;
             img.onload = async () => {
-                document.getElementById('photoImage').src = image.url;
-                document.getElementById('photoTitle').textContent = image.title;
+                const photoImage = document.getElementById('photoImage');
+                photoImage.src = image.url;
+                photoImage.alt = image.title.replace(/-\d{13}$/, ''); // Clean title for alt
+                document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoDescription').textContent = image.description || 'No description';
                 
                 const response = await fetch(image.url, { method: 'HEAD' });
@@ -220,7 +257,7 @@
             const suggestionsGrid = document.getElementById('suggestionsGrid');
             const similarImages = imagesData
                 .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
-                .sort(() => 0.5 - Math.random()) // Shuffle
+                .sort(() => 0.5 - Math.random())
                 .slice(0, 15);
 
             suggestionsGrid.innerHTML = '';
@@ -228,8 +265,8 @@
                 const card = document.createElement('div');
                 card.className = 'suggestion-card';
                 card.innerHTML = `
-                    <img src="${image.url}" alt="${image.title}">
-                    <p>${image.title}</p>
+                    <img src="${image.url}" alt="${image.title.replace(/-\d{13}$/, '')}">
+                    <p>${image.title.replace(/-\d{13}$/, '')}</p>
                 `;
                 card.addEventListener('click', () => {
                     window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
@@ -258,7 +295,7 @@
                 const blob = await response.blob();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `${image.title}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
+                link.download = `${image.title.replace(/-\d{13}$/, '')}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -272,7 +309,30 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadImages);
+        // Additional JavaScript protections
+        document.addEventListener('DOMContentLoaded', () => {
+            loadImages();
+
+            // Prevent right-click on image
+            document.getElementById('photoImage').addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+
+            // Prevent drag start
+            document.getElementById('photoImage').addEventListener('dragstart', (e) => {
+                e.preventDefault();
+                return false;
+            });
+
+            // Optional: Prevent print screen (basic deterrent, not foolproof)
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    alert('Screenshots are disabled on this page.');
+                }
+            });
+        });
     </script>
 </body>
 </html>

@@ -1,5 +1,4 @@
-// get-script.js
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
   const gallery = document.getElementById('photoGallery');
   const loadingMessage = document.getElementById('loadingMessage');
   const errorMessage = document.getElementById('errorMessage');
@@ -59,9 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     gallery.innerHTML = images.map(image => {
       const cleanTitle = image.title.replace(/-\d{13}$/, '');
+      const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_300,h_250,q_50,c_thumb');
       return `
         <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
-          <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
+          <div class="image-wrapper">
+            <img src="${thumbnailUrl}" alt="${cleanTitle}" loading="lazy">
+          </div>
           <div class="photo-info">
             <h3>${cleanTitle}</h3>
           </div>
@@ -70,6 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
 
     gallery.style.display = 'grid';
+
+    // Add JS protections
+    document.querySelectorAll('.photo-card img').forEach(img => {
+      img.addEventListener('contextmenu', e => e.preventDefault());
+      img.addEventListener('dragstart', e => e.preventDefault());
+    });
   }
 
   function renderCategoryFilter(images) {
@@ -78,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <button class="filter-btn" data-tag="${tag}">${tag}</button>
     `).join('');
 
-    // Add click listeners to filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.tag;

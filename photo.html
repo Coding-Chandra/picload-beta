@@ -15,30 +15,62 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
-            -webkit-user-select: none; /* Disable text selection */
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
         header {
-            background: rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
             color: #fff;
             padding: 1rem 2rem;
-            z-index: 10; /* Below suggestions if needed */
-            backdrop-filter: blur(5px);
+            z-index: 10;
+            backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-        header a {
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4px 4px;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        header .branding img {
+            height: auto;
+            transition: opacity 0.3s ease;
+        }
+        header .branding img:hover {
+            opacity: 0.8;
+        }
+        header .admin-link a {
             color: #fff;
             text-decoration: none;
-            font-size: 2rem;
-            font-weight: 600;
-            transition: color 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #007AFF, #005BB5);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            border: none;
+            transition: all 0.3s ease;
         }
-        header a:hover {
-            color: #4CAF50;
+        header .admin-link a:hover {
+            background: linear-gradient(135deg, #005BB5, #003087);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        header .admin-link a:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
         .container {
             max-width: 1400px;
@@ -106,22 +138,36 @@
             padding: 0.75rem;
             margin-bottom: 1rem;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 12px; /* Softer corners */
             font-size: 1rem;
+            background: #fff;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5);
         }
         .download-btn {
             display: block;
-            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            background: linear-gradient(135deg, #007AFF, #005BB5);
             color: #fff;
             text-decoration: none;
             padding: 0.75rem;
             text-align: center;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 500;
-            transition: background 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            border: none;
+            transition: all 0.3s ease;
         }
         .download-btn:hover {
-            background: linear-gradient(45deg, #388E3C, #4CAF50);
+            background: linear-gradient(135deg, #005BB5, #003087);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        .download-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
         .suggestions {
             margin-top: 2rem;
@@ -158,7 +204,12 @@
 </head>
 <body>
     <header>
-        <a href="index.html">Picload</a>
+        <div class="branding">
+            <a href="/"><img src="/assets/Picload.png" alt="Picload Logo" class="header-logo"></a>
+        </div>
+        <div class="admin-link">
+            <a href="admin.html">Admin Area</a>
+        </div>
     </header>
     
     <div class="container">
@@ -174,8 +225,8 @@
             <div class="tags" id="photoTags"></div>
             <select id="resolutionSelect">
                 <option value="original">Original Resolution</option>
-                <option value="1920">1920px (Max Width/Height)</option>
                 <option value="1280">1280px (Max Width/Height)</option>
+                <option value="1920">1920px (Max Width/Height)</option>
                 <option value="800">800px (Max Width/Height)</option>
             </select>
             <a class="download-btn" id="downloadBtn">Download</a>
@@ -220,7 +271,7 @@
             }
 
             const img = new Image();
-            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale'); // Downgraded for display
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_50,c_scale');
             img.src = thumbnailUrl;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
@@ -275,7 +326,7 @@
 
         async function downloadImage(image) {
             const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url; // Original URL by default
+            let url = image.url;
             const img = new Image();
             img.src = image.url;
 
@@ -317,7 +368,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadImages();
-
             const photoImage = document.getElementById('photoImage');
             photoImage.addEventListener('contextmenu', e => e.preventDefault());
             photoImage.addEventListener('dragstart', e => e.preventDefault());

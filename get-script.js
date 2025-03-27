@@ -58,7 +58,7 @@
 
     gallery.innerHTML = images.map(image => {
       const cleanTitle = image.title.replace(/-\d{13}$/, '');
-      const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_300,h_250,q_50,c_thumb');
+      const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_300,h_250,q_90,c_thumb');
       return `
         <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
           <div class="image-wrapper">

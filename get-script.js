@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const preloader = document.getElementById('preloader');
 
   let allImages = [];
+  let activeTag = null; // Track the single active tag
 
   window.addEventListener('load', () => {
     preloader.style.display = 'none';
@@ -37,18 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
       }
 
-      // Clean titles in the data immediately
-      allImages = images.map(image => ({
-        ...image,
-        title: image.title.replace(/-\d{13}$/, '')
-      }));
+      allImages = images;
       renderGallery(allImages);
-
-      const allTags = [...new Set(allImages.flatMap(img => img.tags))];
-      categoryFilter.innerHTML = allTags.map(tag => `
-  <label><input type="checkbox" value="${tag}" class="category-checkbox"><span>${tag}</span></label>
-`).join('');
-
+      renderCategoryFilter(allImages);
     } catch (error) {
       console.error('Error fetching images:', error);
       errorMessage.textContent = `Error: ${error.message}`;
@@ -66,16 +58,51 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    gallery.innerHTML = images.map(image => `
-      <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
-        <img src="${image.url}" alt="${image.title}" loading="lazy">
-        <div class="photo-info">
-          <h3>${image.title}</h3>
+    gallery.innerHTML = images.map(image => {
+      const cleanTitle = image.title.replace(/-\d{13}$/, '');
+      return `
+        <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
+          <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
+          <div class="photo-info">
+            <h3>${cleanTitle}</h3>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     gallery.style.display = 'grid';
+  }
+
+  function renderCategoryFilter(images) {
+    const allTags = [...new Set(images.flatMap(img => img.tags))].sort(); // Sort alphabetically
+    categoryFilter.innerHTML = allTags.map(tag => `
+      <button class="filter-btn${activeTag === tag ? ' active' : ''}" data-tag="${tag}">${tag}</button>
+    `).join('');
+
+    // Add click handlers to filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = btn.getAttribute('data-tag');
+        if (activeTag === tag) {
+          activeTag = null; // Deselect if clicking the active tag
+        } else {
+          activeTag = tag; // Set new active tag
+        }
+        updateFilterButtons();
+        updateGallery();
+      });
+    });
+  }
+
+  function updateFilterButtons() {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      const tag = btn.getAttribute('data-tag');
+      if (tag === activeTag) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
   }
 
   function sortImages(images, sortBy) {
@@ -105,11 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     }
 
-    const selectedCategories = Array.from(document.querySelectorAll('.category-checkbox:checked'))
-      .map(cb => cb.value);
-    if (selectedCategories.length > 0) {
+    if (activeTag) {
       filteredImages = filteredImages.filter(image =>
-        selectedCategories.every(cat => image.tags.includes(cat))
+        image.tags.includes(activeTag)
       );
     }
 
@@ -118,10 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGallery(filteredImages);
   }
 
-  // Event listeners
   searchBar.addEventListener('input', updateGallery);
   sortSelect.addEventListener('change', updateGallery);
-  categoryFilter.addEventListener('change', updateGallery); // Ensure this triggers on checkbox change
 
   fetchImages();
 });

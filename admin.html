@@ -3,147 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picload - Admin</title>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <title>Picload - Photo</title>
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
+            line-height: 1.6;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         header {
-            background: rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
             color: #fff;
             padding: 1rem 2rem;
-            text-align: center;
-            position: sticky;
-            top: 0;
             z-index: 10;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-        header .branding a {
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4px 4px;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        header .branding img {
+            height: auto;
+            transition: opacity 0.3s ease;
+        }
+        header .branding img:hover {
+            opacity: 0.8;
+        }
+        header .admin-link a {
             color: #fff;
             text-decoration: none;
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: color 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #007AFF, #005BB5);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            border: none;
+            transition: all 0.3s ease;
         }
-        header .branding a:hover {
-            color: #4CAF50;
+        header .admin-link a:hover {
+            background: linear-gradient(135deg, #005BB5, #003087);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        header .admin-link a:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
         .container {
-            max-width: 800px;
+            max-width: 1400px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        .admin-panel {
+        .photo-details {
             background: #fff;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
         }
-        h2 {
+        .photo-details .image-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-height: 500px;
+        }
+        .photo-details .image-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 1;
+        }
+        .photo-details img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+        .photo-details h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .photo-details p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .tags {
+            margin: 1rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background: #e0e0e0;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 12px; /* Softer corners */
+            font-size: 1rem;
+            background: #fff;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5);
+        }
+        .download-btn {
+            display: block;
+            background: linear-gradient(135deg, #007AFF, #005BB5);
+            color: #fff;
+            text-decoration: none;
+            padding: 0.75rem;
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .download-btn:hover {
+            background: linear-gradient(135deg, #005BB5, #003087);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        .download-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+        .suggestions {
+            margin-top: 2rem;
+        }
+        .suggestions h2 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: #222;
         }
-        .upload-form {
-            display: flex;
-            flex-direction: column;
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 1rem;
         }
-        input, textarea {
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        input:focus, textarea:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        button {
-            padding: 0.75rem;
-            background: linear-gradient(45deg, #4CAF50, #66BB6A);
-            color: #fff;
-            border: none;
+        .suggestion-card {
+            background: #fff;
             border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background: linear-gradient(45deg, #388E3C, #4CAF50);
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .preview-container {
-            margin: 1rem 0;
-            text-align: center;
-        }
-        #imagePreview {
-            max-width: 100%;
-            max-height: 300px;
-            display: none;
-            border-radius: 10px;
+            overflow: hidden;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            cursor: pointer;
         }
-        #imagePreview:hover {
-            transform: scale(1.02);
-        }
-        .login-button {
-            display: block;
-            margin: 1rem auto;
-            padding: 0.75rem 2rem;
-        }
-        .success-message {
-            color: #4CAF50;
-            text-align: center;
-            margin: 1rem 0;
-            font-weight: 500;
-            display: none;
-        }
-        .progress-container {
+        .suggestion-card img {
             width: 100%;
-            background: #f1f1f1;
-            border-radius: 5px;
-            margin: 1rem 0;
-            display: none;
+            height: 150px;
+            object-fit: cover;
         }
-        .progress-bar {
-            width: 0%;
-            height: 20px;
-            background: linear-gradient(45deg, #4CAF50, #66BB6A);
-            border-radius: 5px;
-            transition: width 0.3s ease;
-        }
-        .back-link {
+        .suggestion-card p {
+            padding: 0.5rem;
+            font-size: 0.9rem;
             text-align: center;
-            margin: 2rem 0;
-        }
-        .back-link a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        .back-link a:hover {
-            color: #388E3C;
+            color: #333;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -151,152 +205,179 @@
 <body>
     <header>
         <div class="branding">
-            <a href="/">Picload</a>
+            <a href="/"><img src="/assets/Picload.png" alt="Picload Logo" class="header-logo"></a>
         </div>
-         <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
+        <div class="admin-link">
+            <a href="admin.html">Admin Area</a>
+        </div>
     </header>
     
     <div class="container">
-        <!-- Login Section -->
-        <div class="admin-panel" id="loginSection">
-            <h2>Admin Area</h2>
-            <p>You need to log in to access the admin features.</p>
-            <button class="login-button" onclick="netlifyIdentity.open()">Log in</button>
+        <div class="photo-details" id="photoDetails">
+            <div class="image-wrapper">
+                <img id="photoImage" alt="">
+            </div>
+            <h1 id="photoTitle"></h1>
+            <p><strong>Description:</strong> <span id="photoDescription"></span></p>
+            <p><strong>File Size:</strong> <span id="photoFileSize"></span></p>
+            <p><strong>Resolution:</strong> <span id="photoResolution"></span></p>
+            <p><strong>Downloads:</strong> <span id="photoDownloads"></span></p>
+            <div class="tags" id="photoTags"></div>
+            <select id="resolutionSelect">
+                <option value="original">Original Resolution</option>
+                <option value="1280">1280px (Max Width/Height)</option>
+                <option value="1920">1920px (Max Width/Height)</option>
+                <option value="800">800px (Max Width/Height)</option>
+            </select>
+            <a class="download-btn" id="downloadBtn">Download</a>
         </div>
         
-        <!-- Upload Section -->
-        <div class="admin-panel" id="uploadSection" style="display: none;">
-            <h2>Upload New Photo</h2>
-            
-            <div class="success-message" id="successMessage">Photo uploaded successfully!</div>
-            
-            <form class="upload-form" id="uploadForm">
-                <input type="file" id="photoUpload" accept="image/*" required>
-                
-                <div class="preview-container">
-                    <img id="imagePreview" alt="Image Preview">
-                </div>
-                
-                <input type="text" id="photoTitle" placeholder="Photo Title" required>
-                <textarea id="photoDescription" placeholder="Photo Description (optional)" rows="3"></textarea>
-                <input type="text" id="photoTags" placeholder="Tags (comma-separated, e.g., nature, sunset)" required>
-                
-                <div class="progress-container" id="progressContainer">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                
-                <button type="submit" id="uploadButton">Upload Photo</button>
-            </form>
-            
-        </div>
-        
-        <div class="back-link">
-            <a href="index.html">Back to Gallery</a>
+        <div class="suggestions">
+            <h2>Similar Photos</h2>
+            <div class="suggestions-grid" id="suggestionsGrid"></div>
         </div>
     </div>
     
     <script>
-        netlifyIdentity.on('init', user => {
-            if (user) {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('uploadSection').style.display = 'block';
-            }
-        });
-        
-        netlifyIdentity.on('login', user => {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('uploadSection').style.display = 'block';
-        });
-        
-        netlifyIdentity.on('logout', () => {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('uploadSection').style.display = 'none';
-        });
-        
-        document.getElementById('photoUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('imagePreview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-  event.preventDefault();
-  
-  const fileInput = document.getElementById('photoUpload');
-  const file = fileInput.files[0];
-  const title = document.getElementById('photoTitle').value.trim();
-  const description = document.getElementById('photoDescription').value.trim();
-  const tagsInput = document.getElementById('photoTags').value.trim();
-  const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
-  const uploadButton = document.getElementById('uploadButton');
-  const progressContainer = document.getElementById('progressContainer');
-  const progressBar = document.getElementById('progressBar');
-  const successMessage = document.getElementById('successMessage');
-  
-  if (!file || !title || tags.length === 0) {
-    alert('Please complete all required fields: image, title, and at least one tag');
-    return;
-  }
-  
-  progressContainer.style.display = 'block';
-  uploadButton.disabled = true;
-  uploadButton.textContent = 'Uploading...';
-  
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'picload_unsigned'); // Replace with your preset name
-    formData.append('public_id', `photo-gallery/${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`);
-    formData.append('tags', tags.join(','));
-    // Set context with title and description
-    formData.append('context', `alt=${title}|description=${description || ''}`);
+        let imagesData = [];
 
-    console.log('Uploading to:', 'https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', formData.get('public_id'));
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      if (progress <= 90) progressBar.style.width = progress + '%';
-    }, 300);
-    
-    const response = await fetch('https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    clearInterval(interval);
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error.message);
-    }
-    
-    progressBar.style.width = '100%';
-    const result = await response.json();
-    console.log('Upload result:', result);
-    
-    successMessage.style.display = 'block';
-    setTimeout(() => successMessage.style.display = 'none', 3000);
-    
-    document.getElementById('uploadForm').reset();
-    document.getElementById('imagePreview').style.display = 'none';
-    progressContainer.style.display = 'none';
-    progressBar.style.width = '0%';
-  } catch (error) {
-    alert('Upload failed: ' + error.message);
-    console.error('Upload error:', error);
-  } finally {
-    uploadButton.disabled = false;
-    uploadButton.textContent = 'Upload Photo';
-  }
-});
+        async function loadImages() {
+            try {
+                const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
+                if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
+                const data = await response.json();
+                console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
+
+                if (!data.images || !Array.isArray(data.images)) {
+                    throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
+                }
+
+                imagesData = data.images;
+                displayPhoto();
+            } catch (error) {
+                console.error('Error loading images:', error);
+                document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayPhoto() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const photoId = urlParams.get('id');
+            const image = imagesData.find(img => img.id === photoId);
+
+            if (!image) {
+                document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
+                return;
+            }
+
+            const img = new Image();
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_50,c_scale');
+            img.src = thumbnailUrl;
+            img.onload = async () => {
+                const photoImage = document.getElementById('photoImage');
+                photoImage.src = thumbnailUrl;
+                photoImage.alt = image.title.replace(/-\d{13}$/, '');
+                document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
+                document.getElementById('photoDescription').textContent = image.description || 'No description';
+                
+                const response = await fetch(image.url, { method: 'HEAD' });
+                const fileSize = response.headers.get('content-length');
+                document.getElementById('photoFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
+
+                document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
+                document.getElementById('photoDownloads').textContent = image.downloads || 0;
+
+                const tagsContainer = document.getElementById('photoTags');
+                tagsContainer.innerHTML = '';
+                image.tags?.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.textContent = tag;
+                    tagsContainer.appendChild(tagElement);
+                });
+
+                document.getElementById('downloadBtn').onclick = () => downloadImage(image);
+                displaySuggestions(image);
+            };
+        }
+
+        function displaySuggestions(currentImage) {
+            const suggestionsGrid = document.getElementById('suggestionsGrid');
+            const similarImages = imagesData
+                .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 15);
+
+            suggestionsGrid.innerHTML = '';
+            similarImages.forEach(image => {
+                const card = document.createElement('div');
+                card.className = 'suggestion-card';
+                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
+                card.innerHTML = `
+                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
+                    <p>${image.title.replace(/-\d{13}$/, '')}</p>
+                `;
+                card.addEventListener('click', () => {
+                    window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
+                });
+                suggestionsGrid.appendChild(card);
+            });
+        }
+
+        async function downloadImage(image) {
+            const resolution = document.getElementById('resolutionSelect').value;
+            let url = image.url;
+            const img = new Image();
+            img.src = image.url;
+
+            await new Promise(resolve => img.onload = resolve);
+            const isPortrait = img.height > img.width;
+            const maxSize = resolution === 'original' ? null : parseInt(resolution);
+
+            if (maxSize) {
+                const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
+                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${image.title.replace(/-\d{13}$/, '')}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+                const updateResponse = await fetch('/.netlify/functions/update-downloads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_id: image.id }),
+                });
+                if (!updateResponse.ok) throw new Error('Failed to update downloads');
+                const updateData = await updateResponse.json();
+
+                image.downloads = updateData.downloads;
+                document.getElementById('photoDownloads').textContent = image.downloads;
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Failed to download image.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadImages();
+            const photoImage = document.getElementById('photoImage');
+            photoImage.addEventListener('contextmenu', e => e.preventDefault());
+            photoImage.addEventListener('dragstart', e => e.preventDefault());
+            document.addEventListener('keydown', e => {
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    alert('Screenshots are disabled on this page.');
+                }
+            });
+        });
     </script>
 </body>
 </html>

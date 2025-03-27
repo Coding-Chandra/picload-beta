@@ -18,59 +18,29 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
-            user-select: none;
+            user-select: none; /* Optional: remove if text selection is needed */
         }
         header {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
             padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
             z-index: 10;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 4px 4px;
-            opacity: 0.3;
-            z-index: -1;
-        }
-        header .branding img {
-            height: auto;
-            transition: opacity 0.3s ease;
-        }
-        header .branding img:hover {
-            opacity: 0.8;
-        }
-        header .admin-link a {
+        header a {
             color: #fff;
             text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 0.6rem 1.2rem;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #007AFF, #005BB5);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-            border: none;
-            transition: all 0.3s ease;
+            font-size: 2rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
         }
-        header .admin-link a:hover {
-            background: linear-gradient(135deg, #005BB5, #003087);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transform: translateY(-1px);
-        }
-        header .admin-link a:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        header a:hover {
+            color: #4CAF50;
         }
         .container {
             max-width: 1400px;
@@ -89,7 +59,6 @@
             position: relative;
             display: inline-block;
             width: 100%;
-            max-height: 500px;
         }
         .photo-details .image-wrapper::after {
             content: '';
@@ -138,36 +107,22 @@
             padding: 0.75rem;
             margin-bottom: 1rem;
             border: 1px solid #ddd;
-            border-radius: 12px; /* Softer corners */
+            border-radius: 5px;
             font-size: 1rem;
-            background: #fff;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-        select:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5);
         }
         .download-btn {
             display: block;
-            background: linear-gradient(135deg, #007AFF, #005BB5);
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
             color: #fff;
             text-decoration: none;
             padding: 0.75rem;
             text-align: center;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 500;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-            border: none;
-            transition: all 0.3s ease;
+            transition: background 0.3s ease;
         }
         .download-btn:hover {
-            background: linear-gradient(135deg, #005BB5, #003087);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transform: translateY(-1px);
-        }
-        .download-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(45deg, #388E3C, #4CAF50);
         }
         .suggestions {
             margin-top: 2rem;
@@ -204,7 +159,7 @@
 </head>
 <body>
     <header>
-        <a href="/">Picload</a>
+        <a href="index.html">Picload</a>
     </header>
     
     <div class="container">
@@ -266,11 +221,10 @@
             }
 
             const img = new Image();
-            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/q_95,c_scale');
-            img.src = thumbnailUrl;
+            img.src = image.url;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
-                photoImage.src = thumbnailUrl;
+                photoImage.src = image.url;
                 photoImage.alt = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoDescription').textContent = image.description || 'No description';
@@ -307,9 +261,8 @@
             similarImages.forEach(image => {
                 const card = document.createElement('div');
                 card.className = 'suggestion-card';
-                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
                 card.innerHTML = `
-                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
+                    <img src="${image.url}" alt="${image.title.replace(/-\d{13}$/, '')}">
                     <p>${image.title.replace(/-\d{13}$/, '')}</p>
                 `;
                 card.addEventListener('click', () => {
@@ -335,6 +288,7 @@
             }
 
             try {
+                // Download the image
                 const response = await fetch(url);
                 const blob = await response.blob();
                 const link = document.createElement('a');
@@ -345,6 +299,7 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(link.href);
 
+                // Update downloads in Cloudinary
                 const updateResponse = await fetch('/.netlify/functions/update-downloads', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -363,9 +318,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadImages();
-            const photoImage = document.getElementById('photoImage');
-            photoImage.addEventListener('contextmenu', e => e.preventDefault());
-            photoImage.addEventListener('dragstart', e => e.preventDefault());
+
+            // Image protection
+            document.getElementById('photoImage').addEventListener('contextmenu', e => e.preventDefault());
+            document.getElementById('photoImage').addEventListener('dragstart', e => e.preventDefault());
             document.addEventListener('keydown', e => {
                 if (e.key === 'PrintScreen') {
                     e.preventDefault();

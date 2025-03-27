@@ -3,138 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picload - Admin Area</title>
-    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <title>Picload - Admin</title>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
             font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
-            line-height: 1.6;
         }
         header {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
             padding: 1rem 2rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
             z-index: 10;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 4px 4px;
-            opacity: 0.3;
-            z-index: -1;
-        }
-        header .branding img {
-            height: auto;
-            transition: opacity 0.3s ease;
-        }
-        header .branding img:hover {
-            opacity: 0.8;
-        }
-        header .admin-link a {
+        header .branding a {
             color: #fff;
             text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 0.6rem 1.2rem;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #007AFF, #005BB5);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-            border: none;
-            transition: all 0.3s ease;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
         }
-        header .admin-link a:hover {
-            background: linear-gradient(135deg, #005BB5, #003087);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transform: translateY(-1px);
-        }
-        header .admin-link a:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        header .branding a:hover {
+            color: #4CAF50;
         }
         .container {
             max-width: 800px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        .admin-section {
+        .admin-panel {
             background: #fff;
             border-radius: 15px;
-            padding: 2rem;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
+            padding: 2rem;
         }
-        h1 {
-            font-size: 2rem;
-            font-weight: 600;
+        h2 {
+            font-size: 1.5rem;
             margin-bottom: 1rem;
-            text-align: center;
+            color: #222;
         }
-        .auth-buttons, .upload-form {
+        .upload-form {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            align-items: center;
         }
-        .login-btn, .logout-btn, .upload-btn {
+        input, textarea {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            padding: 0.75rem;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
             color: #fff;
-            text-decoration: none;
+            border: none;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 500;
-            padding: 0.6rem 1.2rem;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #007AFF, #005BB5);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-            border: none;
-            transition: all 0.3s ease;
             cursor: pointer;
-            width: 200px;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #388E3C, #4CAF50);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .preview-container {
+            margin: 1rem 0;
             text-align: center;
         }
-        .login-btn:hover, .logout-btn:hover, .upload-btn:hover {
-            background: linear-gradient(135deg, #005BB5, #003087);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transform: translateY(-1px);
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
-        .login-btn:active, .logout-btn:active, .upload-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        #imagePreview:hover {
+            transform: scale(1.02);
         }
-        input[type="file"] {
+        .login-button {
+            display: block;
+            margin: 1rem auto;
+            padding: 0.75rem 2rem;
+        }
+        .success-message {
+            color: #4CAF50;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 500;
+            display: none;
+        }
+        .progress-container {
             width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-size: 1rem;
-            background: #fff;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            background: #f1f1f1;
+            border-radius: 5px;
+            margin: 1rem 0;
+            display: none;
         }
-        input[type="file"]:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5);
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            border-radius: 5px;
+            transition: width 0.3s ease;
         }
-        #uploadStatus {
+        .back-link {
             text-align: center;
-            color: #666;
-            margin-top: 1rem;
+            margin: 2rem 0;
+        }
+        .back-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .back-link a:hover {
+            color: #388E3C;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -142,117 +151,152 @@
 <body>
     <header>
         <div class="branding">
-            <a href="/"><img src="/assets/Picload.png" alt="Picload Logo" class="header-logo"></a>
-        </div>
-        <div class="admin-link">
-            <a href="index.html">Back to Gallery</a>
+            <a href="/">Picload</a>
         </div>
     </header>
     
     <div class="container">
-        <div class="admin-section">
-            <h1>Admin Area</h1>
-            <div class="auth-buttons" id="authButtons">
-                <button class="login-btn" id="loginBtn">Login</button>
-                <button class="logout-btn" id="logoutBtn" style="display: none;">Logout</button>
-            </div>
-            <div class="upload-form" id="uploadForm" style="display: none;">
-                <input type="file" id="imageInput" accept="image/*" multiple>
-                <button class="upload-btn" id="uploadBtn">Upload Images</button>
-                <div id="uploadStatus"></div>
-            </div>
+        <!-- Login Section -->
+        <div class="admin-panel" id="loginSection">
+            <h2>Admin Area</h2>
+            <p>You need to log in to access the admin features.</p>
+            <button class="login-button" onclick="netlifyIdentity.open()">Log in</button>
+        </div>
+        
+        <!-- Upload Section -->
+        <div class="admin-panel" id="uploadSection" style="display: none;">
+            <h2>Upload New Photo</h2>
+            
+            <div class="success-message" id="successMessage">Photo uploaded successfully!</div>
+            
+            <form class="upload-form" id="uploadForm">
+                <input type="file" id="photoUpload" accept="image/*" required>
+                
+                <div class="preview-container">
+                    <img id="imagePreview" alt="Image Preview">
+                </div>
+                
+                <input type="text" id="photoTitle" placeholder="Photo Title" required>
+                <textarea id="photoDescription" placeholder="Photo Description (optional)" rows="3"></textarea>
+                <input type="text" id="photoTags" placeholder="Tags (comma-separated, e.g., nature, sunset)" required>
+                
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                
+                <button type="submit" id="uploadButton">Upload Photo</button>
+            </form>
+            
+            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
+        </div>
+        
+        <div class="back-link">
+            <a href="index.html">Back to Gallery</a>
         </div>
     </div>
     
     <script>
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const uploadForm = document.getElementById('uploadForm');
-        const imageInput = document.getElementById('imageInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const uploadStatus = document.getElementById('uploadStatus');
-
-        // Initialize Netlify Identity
-        if (window.netlifyIdentity) {
-            netlifyIdentity.on('init', user => {
-                updateUI(user);
-            });
-            netlifyIdentity.on('login', user => {
-                updateUI(user);
-                uploadStatus.textContent = 'Logged in successfully!';
-                netlifyIdentity.close(); // Close modal after login
-            });
-            netlifyIdentity.on('logout', () => {
-                updateUI(null);
-                uploadStatus.textContent = 'Logged out.';
-            });
-            netlifyIdentity.on('error', err => {
-                console.error('Netlify Identity error:', err);
-                uploadStatus.textContent = 'Error: ' + err.message;
-            });
-        } else {
-            console.error('Netlify Identity widget not loaded');
-            uploadStatus.textContent = 'Error: Identity service unavailable';
-        }
-
-        // Update UI based on login state
-        function updateUI(user) {
+        netlifyIdentity.on('init', user => {
             if (user) {
-                loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'block';
-                uploadForm.style.display = 'block';
-            } else {
-                loginBtn.style.display = 'block';
-                logoutBtn.style.display = 'none';
-                uploadForm.style.display = 'none';
-            }
-        }
-
-        // Login button opens Netlify Identity modal
-        loginBtn.addEventListener('click', () => {
-            netlifyIdentity.open('login');
-        });
-
-        // Logout button triggers Netlify Identity logout
-        logoutBtn.addEventListener('click', () => {
-            netlifyIdentity.logout();
-        });
-
-        // Upload images
-        uploadBtn.addEventListener('click', async () => {
-            const files = imageInput.files;
-            if (!files.length) {
-                uploadStatus.textContent = 'Please select at least one image.';
-                return;
-            }
-
-            uploadStatus.textContent = 'Uploading...';
-            const formData = new FormData();
-            for (const file of files) {
-                formData.append('images', file);
-            }
-
-            try {
-                const response = await fetch('/.netlify/functions/upload-images', {
-                    method: 'POST',
-                    body: formData,
-                });
-                if (!response.ok) throw new Error('Upload failed: ' + response.statusText);
-                const result = await response.json();
-                uploadStatus.textContent = `Uploaded ${files.length} image(s) successfully!`;
-                imageInput.value = ''; // Reset input
-            } catch (error) {
-                console.error('Upload error:', error);
-                uploadStatus.textContent = 'Upload failed: ' + error.message;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('uploadSection').style.display = 'block';
             }
         });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Ensure widget is initialized
-            if (window.netlifyIdentity) {
-                netlifyIdentity.init();
+        
+        netlifyIdentity.on('login', user => {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block';
+        });
+        
+        netlifyIdentity.on('logout', () => {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('uploadSection').style.display = 'none';
+        });
+        
+        document.getElementById('photoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
             }
         });
+        
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
+  
+  const fileInput = document.getElementById('photoUpload');
+  const file = fileInput.files[0];
+  const title = document.getElementById('photoTitle').value.trim();
+  const description = document.getElementById('photoDescription').value.trim();
+  const tagsInput = document.getElementById('photoTags').value.trim();
+  const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
+  const uploadButton = document.getElementById('uploadButton');
+  const progressContainer = document.getElementById('progressContainer');
+  const progressBar = document.getElementById('progressBar');
+  const successMessage = document.getElementById('successMessage');
+  
+  if (!file || !title || tags.length === 0) {
+    alert('Please complete all required fields: image, title, and at least one tag');
+    return;
+  }
+  
+  progressContainer.style.display = 'block';
+  uploadButton.disabled = true;
+  uploadButton.textContent = 'Uploading...';
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'picload_unsigned'); // Replace with your preset name
+    formData.append('public_id', `photo-gallery/${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`);
+    formData.append('tags', tags.join(','));
+    // Set context with title and description
+    formData.append('context', `alt=${title}|description=${description || ''}`);
+
+    console.log('Uploading to:', 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', formData.get('public_id'));
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress <= 90) progressBar.style.width = progress + '%';
+    }, 300);
+    
+    const response = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    clearInterval(interval);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error.message);
+    }
+    
+    progressBar.style.width = '100%';
+    const result = await response.json();
+    console.log('Upload result:', result);
+    
+    successMessage.style.display = 'block';
+    setTimeout(() => successMessage.style.display = 'none', 3000);
+    
+    document.getElementById('uploadForm').reset();
+    document.getElementById('imagePreview').style.display = 'none';
+    progressContainer.style.display = 'none';
+    progressBar.style.width = '0%';
+  } catch (error) {
+    alert('Upload failed: ' + error.message);
+    console.error('Upload error:', error);
+  } finally {
+    uploadButton.disabled = false;
+    uploadButton.textContent = 'Upload Photo';
+  }
+});
     </script>
 </body>
 </html>

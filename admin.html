@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Picload - Admin Area</title>
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
         * {
             margin: 0;
@@ -171,11 +172,32 @@
         const uploadBtn = document.getElementById('uploadBtn');
         const uploadStatus = document.getElementById('uploadStatus');
 
-        // Simple auth state (replace with real auth logic)
-        let isLoggedIn = false;
+        // Initialize Netlify Identity
+        if (window.netlifyIdentity) {
+            netlifyIdentity.on('init', user => {
+                updateUI(user);
+            });
+            netlifyIdentity.on('login', user => {
+                updateUI(user);
+                uploadStatus.textContent = 'Logged in successfully!';
+                netlifyIdentity.close(); // Close modal after login
+            });
+            netlifyIdentity.on('logout', () => {
+                updateUI(null);
+                uploadStatus.textContent = 'Logged out.';
+            });
+            netlifyIdentity.on('error', err => {
+                console.error('Netlify Identity error:', err);
+                uploadStatus.textContent = 'Error: ' + err.message;
+            });
+        } else {
+            console.error('Netlify Identity widget not loaded');
+            uploadStatus.textContent = 'Error: Identity service unavailable';
+        }
 
-        function updateUI() {
-            if (isLoggedIn) {
+        // Update UI based on login state
+        function updateUI(user) {
+            if (user) {
                 loginBtn.style.display = 'none';
                 logoutBtn.style.display = 'block';
                 uploadForm.style.display = 'block';
@@ -186,19 +208,17 @@
             }
         }
 
+        // Login button opens Netlify Identity modal
         loginBtn.addEventListener('click', () => {
-            // Simulate login (replace with real auth)
-            isLoggedIn = true;
-            updateUI();
-            uploadStatus.textContent = 'Logged in successfully!';
+            netlifyIdentity.open('login');
         });
 
+        // Logout button triggers Netlify Identity logout
         logoutBtn.addEventListener('click', () => {
-            isLoggedIn = false;
-            updateUI();
-            uploadStatus.textContent = 'Logged out.';
+            netlifyIdentity.logout();
         });
 
+        // Upload images
         uploadBtn.addEventListener('click', async () => {
             const files = imageInput.files;
             if (!files.length) {
@@ -228,7 +248,10 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            updateUI();
+            // Ensure widget is initialized
+            if (window.netlifyIdentity) {
+                netlifyIdentity.init();
+            }
         });
     </script>
 </body>

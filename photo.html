@@ -15,11 +15,10 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
-            /* Prevent text selection on entire page (optional, remove if unwanted) */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
-            user-select: none;
+            user-select: none; /* Optional: remove if text selection is needed */
         }
         header {
             background: rgba(0, 0, 0, 0.8);
@@ -54,20 +53,8 @@
             padding: 2rem;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
-            position: relative; /* For overlay */
+            position: relative;
         }
-        .photo-details img {
-            width: 100%;
-            max-height: 500px;
-            object-fit: contain;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            /* Disable dragging */
-            -webkit-user-drag: none;
-            user-drag: none;
-            pointer-events: none; /* Prevents clicks from interacting with image directly */
-        }
-        /* Transparent overlay to block right-click */
         .photo-details .image-wrapper {
             position: relative;
             display: inline-block;
@@ -81,7 +68,17 @@
             width: 100%;
             height: 100%;
             background: transparent;
-            z-index: 1; /* Above image, below text */
+            z-index: 1;
+        }
+        .photo-details img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
         }
         .photo-details h1 {
             font-size: 2rem;
@@ -228,7 +225,7 @@
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
                 photoImage.src = image.url;
-                photoImage.alt = image.title.replace(/-\d{13}$/, ''); // Clean title for alt
+                photoImage.alt = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoDescription').textContent = image.description || 'No description';
                 
@@ -291,6 +288,7 @@
             }
 
             try {
+                // Download the image
                 const response = await fetch(url);
                 const blob = await response.blob();
                 const link = document.createElement('a');
@@ -301,7 +299,16 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(link.href);
 
-                image.downloads = (image.downloads || 0) + 1;
+                // Update downloads in Cloudinary
+                const updateResponse = await fetch('/.netlify/functions/update-downloads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_id: image.id }),
+                });
+                if (!updateResponse.ok) throw new Error('Failed to update downloads');
+                const updateData = await updateResponse.json();
+
+                image.downloads = updateData.downloads;
                 document.getElementById('photoDownloads').textContent = image.downloads;
             } catch (error) {
                 console.error('Download failed:', error);
@@ -309,24 +316,13 @@
             }
         }
 
-        // Additional JavaScript protections
         document.addEventListener('DOMContentLoaded', () => {
             loadImages();
 
-            // Prevent right-click on image
-            document.getElementById('photoImage').addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                return false;
-            });
-
-            // Prevent drag start
-            document.getElementById('photoImage').addEventListener('dragstart', (e) => {
-                e.preventDefault();
-                return false;
-            });
-
-            // Optional: Prevent print screen (basic deterrent, not foolproof)
-            document.addEventListener('keydown', (e) => {
+            // Image protection
+            document.getElementById('photoImage').addEventListener('contextmenu', e => e.preventDefault());
+            document.getElementById('photoImage').addEventListener('dragstart', e => e.preventDefault());
+            document.addEventListener('keydown', e => {
                 if (e.key === 'PrintScreen') {
                     e.preventDefault();
                     alert('Screenshots are disabled on this page.');

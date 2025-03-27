@@ -37,7 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
       }
 
-      allImages = images;
+      // Clean titles in the data immediately
+      allImages = images.map(image => ({
+        ...image,
+        title: image.title.replace(/-\d{13}$/, '')
+      }));
       renderGallery(allImages);
 
       const allTags = [...new Set(allImages.flatMap(img => img.tags))];
@@ -62,17 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    gallery.innerHTML = images.map(image => {
-      const cleanTitle = image.title.replace(/-\d{13}$/, '');
-      return `
-        <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
-          <img src="${image.url}" alt="${cleanTitle}" loading="lazy">
-          <div class="photo-info">
-            <h3>${cleanTitle}</h3>
-          </div>
+    gallery.innerHTML = images.map(image => `
+      <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
+        <img src="${image.url}" alt="${image.title}" loading="lazy">
+        <div class="photo-info">
+          <h3>${image.title}</h3>
         </div>
-      `;
-    }).join('');
+      </div>
+    `).join('');
 
     gallery.style.display = 'grid';
   }
@@ -117,9 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGallery(filteredImages);
   }
 
+  // Event listeners
   searchBar.addEventListener('input', updateGallery);
   sortSelect.addEventListener('change', updateGallery);
-  categoryFilter.addEventListener('change', updateGallery);
+  categoryFilter.addEventListener('change', updateGallery); // Ensure this triggers on checkbox change
 
   fetchImages();
 });

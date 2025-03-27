@@ -46,8 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const allTags = [...new Set(allImages.flatMap(img => img.tags))];
       categoryFilter.innerHTML = allTags.map(tag => `
-        <label><input type="checkbox" value="${tag}" class="category-checkbox"> ${tag}</label>
-      `).join('');
+  <label><input type="checkbox" value="${tag}" class="category-checkbox"><span>${tag}</span></label>
+`).join('');
 
     } catch (error) {
       console.error('Error fetching images:', error);

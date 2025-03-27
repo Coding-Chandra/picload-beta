@@ -204,12 +204,7 @@
 </head>
 <body>
     <header>
-        <div class="branding">
-            <a href="/"><img src="/assets/Picload.png" alt="Picload Logo" class="header-logo"></a>
-        </div>
-        <div class="admin-link">
-            <a href="admin.html">Admin Area</a>
-        </div>
+        <a href="/">Picload</a>
     </header>
     
     <div class="container">
@@ -271,7 +266,7 @@
             }
 
             const img = new Image();
-            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_50,c_scale');
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/q_95,c_scale');
             img.src = thumbnailUrl;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');

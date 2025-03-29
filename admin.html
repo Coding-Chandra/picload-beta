@@ -154,6 +154,7 @@
         <div class="branding">
             <a href="/">Picload</a>
         </div>
+         <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
     </header>
     
     <div class="container">
@@ -162,8 +163,6 @@
             <h2>Admin Area</h2>
             <p>You need to log in to access the admin features.</p>
             <button class="login-button" onclick="netlifyIdentity.open()">Log in</button>
-            
-            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
         </div>
         
         <!-- Upload Section -->

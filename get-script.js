@@ -1,4 +1,4 @@
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   const gallery = document.getElementById('photoGallery');
   const loadingMessage = document.getElementById('loadingMessage');
   const errorMessage = document.getElementById('errorMessage');
@@ -21,22 +21,27 @@
       errorMessage.style.display = 'none';
       emptyGallery.style.display = 'none';
 
-      const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`);
-      if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+      let allFetchedImages = [];
+      let nextCursor = null;
 
-      const data = await response.json();
-      console.log('Raw fetched data:', JSON.stringify(data, null, 2));
+      do {
+        const response = await fetch(`/.netlify/functions/get-images${nextCursor ? `?next_cursor=${nextCursor}` : ''}&t=${Date.now()}`);
+        if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
-      let images = [];
-      if (Array.isArray(data)) {
-        images = data;
-      } else if (data.images && Array.isArray(data.images)) {
-        images = data.images;
-      } else {
-        throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
-      }
+        const data = await response.json();
+        console.log('Fetched data batch:', JSON.stringify(data, null, 2));
 
-      allImages = images;
+        if (!data.images || !Array.isArray(data.images)) {
+          throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data)}`);
+        }
+
+        allFetchedImages = allFetchedImages.concat(data.images);
+        nextCursor = data.next_cursor;
+      } while (nextCursor);
+
+      allImages = allFetchedImages;
+      console.log('All images fetched:', JSON.stringify(allImages, null, 2));
+
       renderGallery(allImages);
       renderCategoryFilter(allImages);
     } catch (error) {
@@ -73,7 +78,6 @@
 
     gallery.style.display = 'grid';
 
-    // Add JS protections
     document.querySelectorAll('.photo-card img').forEach(img => {
       img.addEventListener('contextmenu', e => e.preventDefault());
       img.addEventListener('dragstart', e => e.preventDefault());

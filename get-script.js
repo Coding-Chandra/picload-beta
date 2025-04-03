@@ -26,7 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       do {
         const response = await fetch(`/.netlify/functions/get-images${nextCursor ? `?next_cursor=${nextCursor}` : ''}&t=${Date.now()}`);
-        if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Image fetch endpoint not found. Check Netlify functions deployment.');
+          }
+          throw new Error(`Fetch failed: ${response.statusText}`);
+        }
 
         const data = await response.json();
         console.log('Fetched data batch:', JSON.stringify(data, null, 2));

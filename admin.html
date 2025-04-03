@@ -6,145 +6,30 @@
     <title>Picload - Admin</title>
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            color: #333;
-        }
-        header {
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 1rem 2rem;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header .branding a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: color 0.3s ease;
-        }
-        header .branding a:hover {
-            color: #4CAF50;
-        }
-        .container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        .admin-panel {
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-        }
-        h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #222;
-        }
-        .upload-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        input, textarea {
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        input:focus, textarea:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        button {
-            padding: 0.75rem;
-            background: linear-gradient(45deg, #4CAF50, #66BB6A);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background: linear-gradient(45deg, #388E3C, #4CAF50);
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .preview-container {
-            margin: 1rem 0;
-            text-align: center;
-        }
-        #imagePreview {
-            max-width: 100%;
-            max-height: 300px;
-            display: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        #imagePreview:hover {
-            transform: scale(1.02);
-        }
-        .login-button {
-            display: block;
-            margin: 1rem auto;
-            padding: 0.75rem 2rem;
-        }
-        .success-message {
-            color: #4CAF50;
-            text-align: center;
-            margin: 1rem 0;
-            font-weight: 500;
-            display: none;
-        }
-        .progress-container {
-            width: 100%;
-            background: #f1f1f1;
-            border-radius: 5px;
-            margin: 1rem 0;
-            display: none;
-        }
-        .progress-bar {
-            width: 0%;
-            height: 20px;
-            background: linear-gradient(45deg, #4CAF50, #66BB6A);
-            border-radius: 5px;
-            transition: width 0.3s ease;
-        }
-        .back-link {
-            text-align: center;
-            margin: 2rem 0;
-        }
-        .back-link a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        .back-link a:hover {
-            color: #388E3C;
-        }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #333; }
+        header { background: rgba(0, 0, 0, 0.8); color: #fff; padding: 1rem 2rem; text-align: center; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(5px); display: flex; justify-content: space-between; align-items: center; }
+        header .branding a { color: #fff; text-decoration: none; font-size: 2rem; font-weight: 600; letter-spacing: 1px; transition: color 0.3s ease; }
+        header .branding a:hover { color: #4CAF50; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .admin-panel { background: #fff; border-radius: 15px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); padding: 2rem; }
+        h2 { font-size: 1.5rem; margin-bottom: 1rem; color: #222; }
+        .upload-form { display: flex; flex-direction: column; gap: 1rem; }
+        input, textarea { padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; transition: border-color 0.3s ease; }
+        input:focus, textarea:focus { border-color: #4CAF50; outline: none; }
+        textarea { resize: vertical; min-height: 100px; }
+        button { padding: 0.75rem; background: linear-gradient(45deg, #4CAF50, #66BB6A); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s ease; }
+        button:hover { background: linear-gradient(45deg, #388E3C, #4CAF50); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .preview-container { margin: 1rem 0; text-align: center; }
+        #imagePreview { max-width: 100%; max-height: 300px; display: none; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease; }
+        #imagePreview:hover { transform: scale(1.02); }
+        .login-button { display: block; margin: 1rem auto; padding: 0.75rem 2rem; }
+        .success-message { color: #4CAF50; text-align: center; margin: 1rem 0; font-weight: 500; display: none; }
+        .progress-container { width: 100%; background: #f1f1f1; border-radius: 5px; margin: 1rem 0; display: none; }
+        .progress-bar { width: 0%; height: 20px; background: linear-gradient(45deg, #4CAF50, #66BB6A); border-radius: 5px; transition: width 0.3s ease; }
+        .back-link { text-align: center; margin: 2rem 0; }
+        .back-link a { color: #4CAF50; text-decoration: none; font-weight: 500; transition: color 0.3s ease; }
+        .back-link a:hover { color: #388E3C; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -164,27 +49,20 @@
         
         <div class="admin-panel" id="uploadSection" style="display: none;">
             <h2>Upload New Photo</h2>
-            
             <div class="success-message" id="successMessage">Photo uploaded successfully! Redirecting...</div>
-            
             <form class="upload-form" id="uploadForm">
                 <input type="file" id="photoUpload" accept="image/*" required>
-                
                 <div class="preview-container">
                     <img id="imagePreview" alt="Image Preview">
                 </div>
-                
                 <input type="text" id="photoTitle" placeholder="Photo Title" required>
                 <textarea id="photoDescription" placeholder="Photo Description (optional)" rows="3"></textarea>
                 <input type="text" id="photoTags" placeholder="Tags (comma-separated, e.g., nature, sunset)" required>
-                
                 <div class="progress-container" id="progressContainer">
                     <div class="progress-bar" id="progressBar"></div>
                 </div>
-                
                 <button type="submit" id="uploadButton">Upload Photo</button>
             </form>
-            
             <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
         </div>
         
@@ -226,7 +104,6 @@
         
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            
             const fileInput = document.getElementById('photoUpload');
             const file = fileInput.files[0];
             const title = document.getElementById('photoTitle').value.trim();
@@ -282,7 +159,7 @@
                 successMessage.style.display = 'block';
                 setTimeout(() => {
                     successMessage.style.display = 'none';
-                    window.location.href = 'index.html'; // Redirect to gallery
+                    window.location.href = 'index.html';
                 }, 3000);
                 
                 document.getElementById('uploadForm').reset();
@@ -298,5 +175,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92a0d3af7f547cc4',t:'MTc0MzYwMjE1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

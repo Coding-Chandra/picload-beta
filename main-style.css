@@ -15,6 +15,7 @@ body {
     user-select: none;
 }
 
+/* Pre-loader */
 .preloader {
     position: fixed;
     top: 0;
@@ -40,60 +41,91 @@ body {
     100% { transform: scale(1); }
 }
 
+.preloader.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
 header {
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
     color: #fff;
     padding: 1rem 2rem;
     z-index: 10;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); /* macOS blur effect */
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
-
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0.3;
+    z-index: -1;
+}
 header .branding img {
     height: auto;
     transition: opacity 0.3s ease;
 }
-
 header .branding img:hover {
     opacity: 0.8;
 }
-
 header .search-bar {
     flex-grow: 1;
     margin: 0 1rem;
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 12px;
+    border-radius: 12px; /* Softer corners */
     font-size: 1rem;
     background: rgba(255, 255, 255, 0.95);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.3s ease;
+    mix-blend-mode: screen;
 }
-
 header .search-bar:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.5); /* iOS focus ring */
 }
-
-header .admin-link a {
+header .admin-link a,
+.download-btn,
+.login-btn,
+.logout-btn,
+.upload-btn {
     color: #fff;
     text-decoration: none;
     font-size: 1rem;
     font-weight: 500;
     padding: 0.6rem 1.2rem;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #007AFF, #005BB5);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border-radius: 12px; /* iOS/macOS rounded */
+    background: linear-gradient(135deg, #007AFF, #005BB5); /* iOS blue gradient */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    border: none;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
-
-header .admin-link a:hover {
+header .admin-link a:hover,
+.download-btn:hover,
+.login-btn:hover,
+.logout-btn:hover,
+.upload-btn:hover {
     background: linear-gradient(135deg, #005BB5, #003087);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+header .admin-link a:active,
+.download-btn:active,
+.login-btn:active,
+.logout-btn:active,
+.upload-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .category-filter {
@@ -107,8 +139,12 @@ header .admin-link a:hover {
     overflow-x: auto;
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
-
+.category-filter::-webkit-scrollbar {
+    display: none;
+}
 .filter-btn {
     padding: 0.5rem 1rem;
     background: transparent;
@@ -119,18 +155,19 @@ header .admin-link a:hover {
     color: #555;
     cursor: pointer;
     transition: all 0.3s ease;
+    flex-shrink: 0;
+    text-transform: capitalize;
 }
-
 .filter-btn:hover {
     background: #f0f0f0;
     border-color: #ccc;
     color: #333;
 }
-
 .filter-btn.active {
-    background: #007AFF;
+    background: #007AFF; /* iOS blue */
     border-color: #007AFF;
     color: #fff;
+    font-weight: 600;
 }
 
 .container {
@@ -147,17 +184,25 @@ header .admin-link a:hover {
     margin-bottom: 2rem;
 }
 
+.sort-options {
+    position: relative;
+}
 .sort-options select {
+    appearance: none;
     padding: 0.5rem 2rem 0.5rem 1rem;
     background: transparent;
     border: 1px solid #ddd;
-    border-radius: 12px;
+    border-radius: 12px; /* Softer corners */
     font-size: 0.9rem;
     font-weight: 500;
     color: #555;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
-
+.sort-options select:hover {
+    background: #f0f0f0;
+    border-color: #ccc;
+}
 .sort-options::after {
     content: '▼';
     position: absolute;
@@ -166,6 +211,7 @@ header .admin-link a:hover {
     transform: translateY(-50%);
     font-size: 0.7rem;
     color: #555;
+    pointer-events: none;
 }
 
 .gallery {
@@ -173,6 +219,12 @@ header .admin-link a:hover {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     padding: 1rem;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .photo-card {
@@ -180,8 +232,9 @@ header .admin-link a:hover {
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    position: relative;
 }
 
 .photo-card:hover {
@@ -194,13 +247,28 @@ header .admin-link a:hover {
     width: 100%;
     height: 250px;
 }
-
+.photo-card .image-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 1;
+}
 .photo-card img {
     width: 100%;
     height: 250px;
     object-fit: cover;
+    transition: opacity 0.3s ease;
     -webkit-user-drag: none;
     user-drag: none;
+    pointer-events: none;
+}
+
+.photo-card:hover img {
+    opacity: 0.9;
 }
 
 .photo-info {
@@ -210,7 +278,14 @@ header .admin-link a:hover {
 .photo-info h3 {
     font-size: 1.25rem;
     font-weight: 600;
+    margin-bottom: 0.5rem;
     color: #222;
+}
+
+.photo-info p {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0;
 }
 
 .loading, .error-message, .empty-gallery {

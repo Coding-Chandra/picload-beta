@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
   const gallery = document.getElementById('photoGallery');
   const loadingMessage = document.getElementById('loadingMessage');
   const errorMessage = document.getElementById('errorMessage');
@@ -21,32 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
       errorMessage.style.display = 'none';
       emptyGallery.style.display = 'none';
 
-      let allFetchedImages = [];
-      let nextCursor = null;
+      const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`);
+      if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
-      do {
-        const response = await fetch(`/.netlify/functions/get-images${nextCursor ? `?next_cursor=${nextCursor}` : ''}&t=${Date.now()}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Image fetch endpoint not found. Check Netlify functions deployment.');
-          }
-          throw new Error(`Fetch failed: ${response.statusText}`);
-        }
+      const data = await response.json();
+      console.log('Raw fetched data:', JSON.stringify(data, null, 2));
 
-        const data = await response.json();
-        console.log('Fetched data batch:', JSON.stringify(data, null, 2));
+      let images = [];
+      if (Array.isArray(data)) {
+        images = data;
+      } else if (data.images && Array.isArray(data.images)) {
+        images = data.images;
+      } else {
+        throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
+      }
 
-        if (!data.images || !Array.isArray(data.images)) {
-          throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data)}`);
-        }
-
-        allFetchedImages = allFetchedImages.concat(data.images);
-        nextCursor = data.next_cursor;
-      } while (nextCursor);
-
-      allImages = allFetchedImages;
-      console.log('All images fetched:', JSON.stringify(allImages, null, 2));
-
+      allImages = images;
       renderGallery(allImages);
       renderCategoryFilter(allImages);
     } catch (error) {
@@ -83,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     gallery.style.display = 'grid';
 
+    // Add JS protections
     document.querySelectorAll('.photo-card img').forEach(img => {
       img.addEventListener('contextmenu', e => e.preventDefault());
       img.addEventListener('dragstart', e => e.preventDefault());

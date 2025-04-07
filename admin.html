@@ -7,14 +7,16 @@
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Rufina';
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: #333;
         }
         header {
-            background: rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, #a855f7e6, #facc15e6);
             color: #fff;
             padding: 1rem 2rem;
             text-align: center;
@@ -35,7 +37,7 @@
             transition: color 0.3s ease;
         }
         header .branding a:hover {
-            color: #4CAF50;
+            opacity: 0.8;
         }
         .container {
             max-width: 800px;
@@ -146,14 +148,15 @@
             color: #388E3C;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/cc720c3bd4.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
         <div class="branding">
-            <a href="/">Picload</a>
+            <a href="#">Picload</a>
         </div>
-        <button type="submit" id="uploadButton">Upload Photo</button>
+         <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
     </header>
     
     <div class="container">
@@ -184,13 +187,14 @@
                 <div class="progress-container" id="progressContainer">
                     <div class="progress-bar" id="progressBar"></div>
                 </div>
+                
+                <button type="submit" id="uploadButton">Upload Photo</button>
             </form>
             
-            <button id="logoutBtn" onclick="netlifyIdentity.logout()">Logout</button>
         </div>
         
         <div class="back-link">
-            <a href="index.html">Back to Gallery</a>
+            <a href="index.html"><i class="fa-regular fa-square-caret-left"></i> Back to Gallery</a>
         </div>
     </div>
     

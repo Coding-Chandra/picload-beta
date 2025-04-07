@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Picload - Photo Gallery</title>
     <link rel="stylesheet" href="main-style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://kit.fontawesome.com/cc720c3bd4.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- Pre-loader -->
@@ -16,11 +17,11 @@
 
     <header>
         <div class="branding">
-            <a href="/"><img src="/assets/Picload.png" alt="Picload Logo" class="header-logo"></a>
+            PICLOAD
         </div>
-        <input type="text" class="search-bar" id="searchBar" placeholder="Search by tags or keywords...">
+        <input type="text" class="search-bar" id="searchBar" placeholder= "🔍︎ Search by tags or keywords...">
         <div class="admin-link">
-            <a href="admin.html">Admin Area</a>
+            <a href="admin.html"><i class="fa-solid fa-user-tie"></i></a>
         </div>
     </header>
     
@@ -30,9 +31,9 @@
         <div class="controls">
             <div class="sort-options">
                 <select id="sortSelect">
-                    <option value="shuffled">Shuffled</option>
                     <option value="new-to-old" selected>New to Old</option>
                     <option value="old-to-new">Old to New</option>
+                    <option value="shuffled">Shuffled</option>
                     <option value="most-downloaded">Most Downloaded</option>
                 </select>
             </div>
@@ -44,6 +45,7 @@
         <div class="gallery" id="photoGallery" style="display: none;"></div>
         
         <div class="empty-gallery" id="emptyGallery" style="display: none;">
+            <img src="./assets/exclaim.png" style="height: 200px; width: 200px;">
             <h2>No Photos Yet</h2>
             <p>Add some images in the admin area to get started.</p>
         </div>

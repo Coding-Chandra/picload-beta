@@ -208,7 +208,7 @@
             }
         }
 
-        function displayPhoto() {
+         function displayPhoto() {
             const urlParams = new URLSearchParams(window.location.search);
             const photoId = urlParams.get('id');
             const image = imagesData.find(img => img.id === photoId);
@@ -219,11 +219,10 @@
             }
 
             const img = new Image();
-            const thumbnailUrl = image.url.replace(/upload\/v\d+/); // Downgraded for display
-            img.src = thumbnailUrl;
+            img.src = image.url;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
-                photoImage.src = thumbnailUrl;
+                photoImage.src = image.url;
                 photoImage.alt = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoDescription').textContent = image.description || 'No description';

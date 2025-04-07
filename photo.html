@@ -11,22 +11,20 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Rufina';
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
-            -webkit-user-select: none;
+            -webkit-user-select: none; /* Disable text selection */
             -moz-user-select: none;
             -ms-user-select: none;
-            user-select: none; /* Optional: remove if text selection is needed */
+            user-select: none;
         }
         header {
-            background: rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, #a855f7e6, #facc15e6);
             color: #fff;
             padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            z-index: 10; /* Below suggestions if needed */
             backdrop-filter: blur(5px);
             display: flex;
             justify-content: space-between;
@@ -40,7 +38,7 @@
             transition: color 0.3s ease;
         }
         header a:hover {
-            color: #4CAF50;
+            opacity: 0.8;
         }
         .container {
             max-width: 1400px;
@@ -59,6 +57,7 @@
             position: relative;
             display: inline-block;
             width: 100%;
+            max-height: 500px;
         }
         .photo-details .image-wrapper::after {
             content: '';
@@ -77,7 +76,6 @@
             border-radius: 10px;
             margin-bottom: 1rem;
             -webkit-user-drag: none;
-            user-drag: none;
             pointer-events: none;
         }
         .photo-details h1 {
@@ -155,7 +153,7 @@
             color: #333;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -169,14 +167,14 @@
             </div>
             <h1 id="photoTitle"></h1>
             <p><strong>Description:</strong> <span id="photoDescription"></span></p>
-            <p><strong>File Size:</strong> <span id="photoFileSize"></span></p>
-            <p><strong>Resolution:</strong> <span id="photoResolution"></span></p>
+            <p><strong>OG File Size:</strong> <span id="photoFileSize"></span></p>
+            <p><strong>OG Resolution:</strong> <span id="photoResolution"></span></p>
             <p><strong>Downloads:</strong> <span id="photoDownloads"></span></p>
             <div class="tags" id="photoTags"></div>
             <select id="resolutionSelect">
                 <option value="original">Original Resolution</option>
-                <option value="1280">1280px (Max Width/Height)</option>
                 <option value="1920">1920px (Max Width/Height)</option>
+                <option value="1280">1280px (Max Width/Height)</option>
                 <option value="800">800px (Max Width/Height)</option>
             </select>
             <a class="download-btn" id="downloadBtn">Download</a>
@@ -221,10 +219,11 @@
             }
 
             const img = new Image();
-            img.src = image.url;
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale'); // Downgraded for display
+            img.src = thumbnailUrl;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
-                photoImage.src = image.url;
+                photoImage.src = thumbnailUrl;
                 photoImage.alt = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoDescription').textContent = image.description || 'No description';
@@ -261,8 +260,9 @@
             similarImages.forEach(image => {
                 const card = document.createElement('div');
                 card.className = 'suggestion-card';
+                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
                 card.innerHTML = `
-                    <img src="${image.url}" alt="${image.title.replace(/-\d{13}$/, '')}">
+                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
                     <p>${image.title.replace(/-\d{13}$/, '')}</p>
                 `;
                 card.addEventListener('click', () => {
@@ -274,7 +274,7 @@
 
         async function downloadImage(image) {
             const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url;
+            let url = image.url; // Original URL by default
             const img = new Image();
             img.src = image.url;
 
@@ -288,7 +288,6 @@
             }
 
             try {
-                // Download the image
                 const response = await fetch(url);
                 const blob = await response.blob();
                 const link = document.createElement('a');
@@ -299,7 +298,6 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(link.href);
 
-                // Update downloads in Cloudinary
                 const updateResponse = await fetch('/.netlify/functions/update-downloads', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -319,9 +317,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadImages();
 
-            // Image protection
-            document.getElementById('photoImage').addEventListener('contextmenu', e => e.preventDefault());
-            document.getElementById('photoImage').addEventListener('dragstart', e => e.preventDefault());
+            const photoImage = document.getElementById('photoImage');
+            photoImage.addEventListener('contextmenu', e => e.preventDefault());
+            photoImage.addEventListener('dragstart', e => e.preventDefault());
             document.addEventListener('keydown', e => {
                 if (e.key === 'PrintScreen') {
                     e.preventDefault();

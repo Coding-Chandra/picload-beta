@@ -10,10 +10,10 @@
             font-family: 'Rufina';
             margin: 0;
             padding: 0;
-            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-image: linear-gradient(135deg, #222222 0%, #27292d 100%);
             background-repeat: no-repeat;
             background-attachment: fixed;
-            color: #333;
+            color: #f2f2f2;
         }
         header {
             background: linear-gradient(135deg, #a855f7e6, #facc15e6);
@@ -45,15 +45,16 @@
             padding: 0 1rem;
         }
         .admin-panel {
-            background: #fff;
+            color: #f2f2f2;
+            background: #565252;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px #ffffff1a;
             padding: 2rem;
         }
         h2 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: #222;
+            color: #f2f2f2;
         }
         .upload-form {
             display: flex;
@@ -62,7 +63,7 @@
         }
         input, textarea {
             padding: 0.75rem;
-            border: 1px solid #ddd;
+            border: 1px solid #353535;
             border-radius: 5px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
@@ -114,11 +115,27 @@
             padding: 0.75rem 2rem;
         }
         .success-message {
-            color: #4CAF50;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 1.5rem 3rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-size: 1.2rem;
+            font-weight: 600;
             text-align: center;
-            margin: 1rem 0;
-            font-weight: 500;
+            z-index: 1000;
             display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .success-message.show {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
         }
         .progress-container {
             width: 100%;
@@ -230,76 +247,78 @@
         });
         
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-  event.preventDefault();
-  
-  const fileInput = document.getElementById('photoUpload');
-  const file = fileInput.files[0];
-  const title = document.getElementById('photoTitle').value.trim();
-  const description = document.getElementById('photoDescription').value.trim();
-  const tagsInput = document.getElementById('photoTags').value.trim();
-  const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
-  const uploadButton = document.getElementById('uploadButton');
-  const progressContainer = document.getElementById('progressContainer');
-  const progressBar = document.getElementById('progressBar');
-  const successMessage = document.getElementById('successMessage');
-  
-  if (!file || !title || tags.length === 0) {
-    alert('Please complete all required fields: image, title, and at least one tag');
-    return;
-  }
-  
-  progressContainer.style.display = 'block';
-  uploadButton.disabled = true;
-  uploadButton.textContent = 'Uploading...';
-  
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'picload_unsigned'); // Replace with your preset name
-    formData.append('public_id', `photo-gallery/${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`);
-    formData.append('tags', tags.join(','));
-    // Set context with title and description
-    formData.append('context', `alt=${title}|description=${description || ''}`);
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('photoUpload');
+            const file = fileInput.files[0];
+            const title = document.getElementById('photoTitle').value.trim();
+            const description = document.getElementById('photoDescription').value.trim();
+            const tagsInput = document.getElementById('photoTags').value.trim();
+            const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
+            const uploadButton = document.getElementById('uploadButton');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const successMessage = document.getElementById('successMessage');
+            
+            if (!file || !title || tags.length === 0) {
+                alert('Please complete all required fields: image, title, and at least one tag');
+                return;
+            }
+            
+            progressContainer.style.display = 'block';
+            uploadButton.disabled = true;
+            uploadButton.textContent = 'Uploading...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'picload_unsigned'); // Replace with your preset name
+                formData.append('public_id', `photo-gallery/${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`);
+                formData.append('tags', tags.join(','));
+                formData.append('context', `alt=${title}|description=${description || ''}`);
 
-    console.log('Uploading to:', 'https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', formData.get('public_id'));
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      if (progress <= 90) progressBar.style.width = progress + '%';
-    }, 300);
-    
-    const response = await fetch('https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    clearInterval(interval);
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error.message);
-    }
-    
-    progressBar.style.width = '100%';
-    const result = await response.json();
-    console.log('Upload result:', result);
-    
-    successMessage.style.display = 'block';
-    setTimeout(() => successMessage.style.display = 'none', 3000);
-    
-    document.getElementById('uploadForm').reset();
-    document.getElementById('imagePreview').style.display = 'none';
-    progressContainer.style.display = 'none';
-    progressBar.style.width = '0%';
-  } catch (error) {
-    alert('Upload failed: ' + error.message);
-    console.error('Upload error:', error);
-  } finally {
-    uploadButton.disabled = false;
-    uploadButton.textContent = 'Upload Photo';
-  }
-});
+                console.log('Uploading to:', 'https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', formData.get('public_id'));
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 90) progressBar.style.width = progress + '%';
+                }, 300);
+                
+                const response = await fetch('https://api.cloudinary.com/v1_1/dpemqdflm/image/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                
+                clearInterval(interval);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error.message);
+                }
+                
+                progressBar.style.width = '100%';
+                const result = await response.json();
+                console.log('Upload result:', result);
+                
+                // Show modern popup
+                successMessage.classList.add('show');
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 3000);
+                
+                document.getElementById('uploadForm').reset();
+                document.getElementById('imagePreview').style.display = 'none';
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+            } catch (error) {
+                alert('Upload failed: ' + error.message);
+                console.error('Upload error:', error);
+            } finally {
+                uploadButton.disabled = false;
+                uploadButton.textContent = 'Upload Photo';
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   const gallery = document.getElementById('photoGallery');
   const loadingMessage = document.getElementById('loadingMessage');
   const errorMessage = document.getElementById('errorMessage');
@@ -49,6 +49,7 @@
 
   function renderGallery(images) {
     loadingMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
 
     if (images.length === 0) {
       emptyGallery.style.display = 'block';
@@ -56,6 +57,7 @@
       return;
     }
 
+    emptyGallery.style.display = 'none'; // Hide when images exist
     gallery.innerHTML = images.map(image => {
       const cleanTitle = image.title.replace(/-\d{13}$/, '');
       const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_90,c_thumb');
@@ -66,6 +68,7 @@
           </div>
           <div class="photo-info">
             <h3>${cleanTitle}</h3>
+            <input type="hidden" class="original-title" value="${cleanTitle}">
           </div>
         </div>
       `;
@@ -73,7 +76,6 @@
 
     gallery.style.display = 'grid';
 
-    // Add JS protections
     document.querySelectorAll('.photo-card img').forEach(img => {
       img.addEventListener('contextmenu', e => e.preventDefault());
       img.addEventListener('dragstart', e => e.preventDefault());
@@ -97,6 +99,9 @@
           btn.classList.add('active');
         }
         updateGallery();
+        if (activeTags.size === 0 && !searchBar.value) {
+          emptyGallery.style.display = 'none';
+        }
       });
     });
   }
@@ -139,7 +144,13 @@
     renderGallery(filteredImages);
   }
 
-  searchBar.addEventListener('input', updateGallery);
+  searchBar.addEventListener('input', () => {
+    updateGallery();
+    if (!searchBar.value) {
+      emptyGallery.style.display = 'none';
+    }
+  });
+
   sortSelect.addEventListener('change', updateGallery);
 
   fetchImages();

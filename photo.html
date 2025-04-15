@@ -219,7 +219,7 @@
     }
 
     const img = new Image();
-    const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale');
+    const thumbnailUrl = image.url;
     img.src = thumbnailUrl;
     img.onload = async () => {
       const photoImage = document.getElementById('photoImage');

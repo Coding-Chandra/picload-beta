@@ -187,146 +187,157 @@
     </div>
     
     <script>
-        let imagesData = [];
+  let imagesData = [];
 
-        async function loadImages() {
-            try {
-                const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
-                if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
-                const data = await response.json();
-                console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
+  async function loadImages() {
+    try {
+      const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
+      if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
+      const data = await response.json();
+      console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
 
-                if (!data.images || !Array.isArray(data.images)) {
-                    throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
-                }
+      if (!data.images || !Array.isArray(data.images)) {
+        throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
+      }
 
-                imagesData = data.images;
-                displayPhoto();
-            } catch (error) {
-                console.error('Error loading images:', error);
-                document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        }
-
-         function displayPhoto() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const photoId = urlParams.get('id');
-            const image = imagesData.find(img => img.id === photoId);
-
-            if (!image) {
-                document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
-                return;
-            }
-
-            const img = new Image();
-            img.src = image.url;
-            img.onload = async () => {
-                const photoImage = document.getElementById('photoImage');
-                photoImage.src = image.url;
-                photoImage.alt = image.title.replace(/-\d{13}$/, '');
-                document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
-                document.getElementById('photoDescription').textContent = image.description || 'No description';
-                
-                const response = await fetch(image.url, { method: 'HEAD' });
-                const fileSize = response.headers.get('content-length');
-                document.getElementById('photoFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
-
-                document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
-                document.getElementById('photoDownloads').textContent = image.downloads || 0;
-
-                const tagsContainer = document.getElementById('photoTags');
-                tagsContainer.innerHTML = '';
-                image.tags?.forEach(tag => {
-                    const tagElement = document.createElement('span');
-                    tagElement.className = 'tag';
-                    tagElement.textContent = tag;
-                    tagsContainer.appendChild(tagElement);
-                });
-
-                document.getElementById('downloadBtn').onclick = () => downloadImage(image);
-                displaySuggestions(image);
-            };
-        }
-
-        function displaySuggestions(currentImage) {
-            const suggestionsGrid = document.getElementById('suggestionsGrid');
-            const similarImages = imagesData
-                .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 15);
-
-            suggestionsGrid.innerHTML = '';
-            similarImages.forEach(image => {
-                const card = document.createElement('div');
-                card.className = 'suggestion-card';
-                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
-                card.innerHTML = `
-                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
-                    <p>${image.title.replace(/-\d{13}$/, '')}</p>
-                `;
-                card.addEventListener('click', () => {
-                    window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
-                });
-                suggestionsGrid.appendChild(card);
-            });
-        }
-
-        async function downloadImage(image) {
-  const resolution = document.getElementById('resolutionSelect').value;
-  let url = image.url;
-  const img = new Image();
-  img.src = image.url;
-
-  await new Promise(resolve => img.onload = resolve);
-  const isPortrait = img.height > img.width;
-  const maxSize = resolution === 'original' ? null : parseInt(resolution);
-
-  if (maxSize) {
-    const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-    url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+      imagesData = data.images;
+      displayPhoto();
+    } catch (error) {
+      console.error('Error loading images:', error);
+      document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
+    }
   }
 
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    const cleanTitle = image.title.replace(/-\d{13}$/, ''); // e.g., "Pic One"
-    link.download = `${cleanTitle}${resolution === 'original' ? '' : `-${maxSize}px`}.jpg`; // Preserve spaces
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+  function displayPhoto() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const photoId = urlParams.get('id');
+    const image = imagesData.find(img => img.id === photoId);
 
-    const updateResponse = await fetch('/.netlify/functions/update-downloads', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ public_id: image.id }),
+    if (!image) {
+      document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
+      return;
+    }
+
+    const img = new Image();
+    const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale');
+    img.src = thumbnailUrl;
+    img.onload = async () => {
+      const photoImage = document.getElementById('photoImage');
+      photoImage.src = thumbnailUrl;
+      photoImage.alt = image.title.replace(/-\d{13}$/, '');
+      document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
+      document.getElementById('photoDescription').textContent = image.description || 'No description';
+      
+      const response = await fetch(image.url, { method: 'HEAD' });
+      const fileSize = response.headers.get('content-length');
+      document.getElementById('photoFileSize').textContent = fileSize
+        ? fileSize < 1024 * 1024
+          ? `${(fileSize / 1024).toFixed(2)} KB`
+          : `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
+        : 'Unknown';
+
+      document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
+      document.getElementById('photoDownloads').textContent = image.downloads || 0;
+
+      const tagsContainer = document.getElementById('photoTags');
+      tagsContainer.innerHTML = '';
+      image.tags?.forEach(tag => {
+        const tagElement = document.createElement('span');
+        tagElement.className = 'tag';
+        tagElement.textContent = tag;
+        tagsContainer.appendChild(tagElement);
+      });
+
+      document.getElementById('downloadBtn').onclick = () => downloadImage(image);
+      displaySuggestions(image);
+    };
+  }
+
+  function displaySuggestions(currentImage) {
+    const suggestionsGrid = document.getElementById('suggestionsGrid');
+    const similarImages = imagesData
+      .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 15);
+
+    suggestionsGrid.innerHTML = '';
+    similarImages.forEach(image => {
+      const card = document.createElement('div');
+      card.className = 'suggestion-card';
+      const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
+      card.innerHTML = `
+        <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
+        <p>${image.title.replace(/-\d{13}$/, '')}</p>
+      `;
+      card.addEventListener('click', () => {
+        window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
+      });
+      suggestionsGrid.appendChild(card);
     });
-    if (!updateResponse.ok) throw new Error('Failed to update downloads');
-    const updateData = await updateResponse.json();
-
-    image.downloads = updateData.downloads;
-    document.getElementById('photoDownloads').textContent = image.downloads;
-  } catch (error) {
-    console.error('Download failed:', error);
-    alert('Failed to download image.');
   }
-}
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadImages();
+  async function downloadImage(image) {
+    const resolution = document.getElementById('resolutionSelect').value;
+    let url = image.url;
+    const img = new Image();
+    img.src = image.url;
 
-            const photoImage = document.getElementById('photoImage');
-            photoImage.addEventListener('contextmenu', e => e.preventDefault());
-            photoImage.addEventListener('dragstart', e => e.preventDefault());
-            document.addEventListener('keydown', e => {
-                if (e.key === 'PrintScreen') {
-                    e.preventDefault();
-                    alert('Screenshots are disabled on this page.');
-                }
-            });
-        });
-    </script>
+    await new Promise(resolve => img.onload = resolve);
+    const isPortrait = img.height > img.width;
+    const maxSize = resolution === 'original' ? null : parseInt(resolution);
+
+    if (maxSize) {
+      const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
+      url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+    }
+
+    try {
+      console.log('Original image.title:', image.title);
+      const cleanTitle = image.title.replace(/-\d{13}$/, '').replace(/\s+/g, '_');
+      console.log('Cleaned title:', cleanTitle);
+      console.log('Download URL:', url);
+      
+      const response = await fetch(url);
+      console.log('Response headers:', Object.fromEntries(response.headers));
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${cleanTitle}${resolution === 'original' ? '' : `-${maxSize}px`}.jpg`;
+      console.log('link.download:', link.download);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      const updateResponse = await fetch('/.netlify/functions/update-downloads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ public_id: image.id }),
+      });
+      if (!updateResponse.ok) throw new Error('Failed to update downloads');
+      const updateData = await updateResponse.json();
+
+      image.downloads = updateData.downloads;
+      document.getElementById('photoDownloads').textContent = image.downloads;
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download image.');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadImages();
+
+    const photoImage = document.getElementById('photoImage');
+    photoImage.addEventListener('contextmenu', e => e.preventDefault());
+    photoImage.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        alert('Screenshots are disabled on this page.');
+      }
+    });
+  });
+</script>
 </body>
 </html>

@@ -15,7 +15,7 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
-            -webkit-user-select: none; /* Disable text selection */
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
@@ -24,7 +24,7 @@
             background: linear-gradient(135deg, #a855f7e6, #facc15e6);
             color: #fff;
             padding: 1rem 2rem;
-            z-index: 10; /* Below suggestions if needed */
+            z-index: 10;
             backdrop-filter: blur(5px);
             display: flex;
             justify-content: space-between;
@@ -152,10 +152,40 @@
             text-align: center;
             color: #333;
         }
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        .preloader-logo {
+            width: 200px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .preloader.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="preloader" id="preloader">
+        <img src="logo.png" alt="Picload Logo" class="preloader-logo">
+    </div>
+    
     <header>
         <a href="index.html">Picload</a>
     </header>
@@ -189,6 +219,16 @@
     <script>
         let imagesData = [];
 
+        // Format title to "Pic One"
+        function formatTitle(title) {
+            if (!title) return 'Untitled';
+            const cleanTitle = title.split('/').pop().replace(/-\d{13}$/, '');
+            return cleanTitle
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
         async function loadImages() {
             try {
                 const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
@@ -205,31 +245,40 @@
             } catch (error) {
                 console.error('Error loading images:', error);
                 document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
+                document.getElementById('preloader').style.display = 'none';
             }
         }
 
-         function displayPhoto() {
+        function displayPhoto() {
             const urlParams = new URLSearchParams(window.location.search);
             const photoId = urlParams.get('id');
             const image = imagesData.find(img => img.id === photoId);
 
             if (!image) {
                 document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
+                document.getElementById('preloader').style.display = 'none';
                 return;
             }
 
+            console.log('Image object:', JSON.stringify(image, null, 2));
+
             const img = new Image();
-            img.src = image.url;
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale');
+            img.src = thumbnailUrl;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
-                photoImage.src = image.url;
-                photoImage.alt = image.title.replace(/-\d{13}$/, '');
-                document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
+                photoImage.src = thumbnailUrl;
+                photoImage.alt = formatTitle(image.title);
+                document.getElementById('photoTitle').textContent = formatTitle(image.title);
                 document.getElementById('photoDescription').textContent = image.description || 'No description';
                 
                 const response = await fetch(image.url, { method: 'HEAD' });
                 const fileSize = response.headers.get('content-length');
-                document.getElementById('photoFileSize').textContent = fileSize ? `${(fileSize / 1024).toFixed(2)} KB` : 'Unknown';
+                document.getElementById('photoFileSize').textContent = fileSize
+                    ? fileSize < 1024 * 1024
+                      ? `${(fileSize / 1024).toFixed(2)} KB`
+                      : `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
+                    : 'Unknown';
 
                 document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
                 document.getElementById('photoDownloads').textContent = image.downloads || 0;
@@ -245,6 +294,15 @@
 
                 document.getElementById('downloadBtn').onclick = () => downloadImage(image);
                 displaySuggestions(image);
+
+                document.getElementById('preloader').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('preloader').style.display = 'none';
+                }, 500);
+            };
+            img.onerror = () => {
+                document.getElementById('photoDetails').innerHTML = '<p>Failed to load image</p>';
+                document.getElementById('preloader').style.display = 'none';
             };
         }
 
@@ -261,8 +319,8 @@
                 card.className = 'suggestion-card';
                 const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
                 card.innerHTML = `
-                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
-                    <p>${image.title.replace(/-\d{13}$/, '')}</p>
+                    <img src="${thumbnailUrl}" alt="${formatTitle(image.title)}">
+                    <p>${formatTitle(image.title)}</p>
                 `;
                 card.addEventListener('click', () => {
                     window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
@@ -273,7 +331,7 @@
 
         async function downloadImage(image) {
             const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url; // Original URL by default
+            let url = image.url;
             const img = new Image();
             img.src = image.url;
 
@@ -287,11 +345,23 @@
             }
 
             try {
-                const response = await fetch(url);
+                console.log('Image ID:', image.id);
+                console.log('Original image.title:', image.title);
+                const cleanTitle = formatTitle(image.title); // Use formatted title
+                console.log('Cleaned title:', cleanTitle);
+                console.log('Image URL:', url);
+
+                const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
                 const blob = await response.blob();
+                const fileName = `${cleanTitle}${resolution === 'original' ? '' : `-${resolution}px`}.jpg`;
+                console.log('Intended fileName:', fileName);
+
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `${image.title.replace(/-\d{13}$/, '')}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
+                link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -309,7 +379,8 @@
                 document.getElementById('photoDownloads').textContent = image.downloads;
             } catch (error) {
                 console.error('Download failed:', error);
-                alert('Failed to download image.');
+                alert('Failed to download image: ' + error.message);
+                document.getElementById('preloader').style.display = 'none';
             }
         }
 

@@ -15,7 +15,7 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
             line-height: 1.6;
-            -webkit-user-select: none; /* Disable text selection */
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
@@ -24,7 +24,7 @@
             background: linear-gradient(135deg, #a855f7e6, #facc15e6);
             color: #fff;
             padding: 1rem 2rem;
-            z-index: 10; /* Below suggestions if needed */
+            z-index: 10;
             backdrop-filter: blur(5px);
             display: flex;
             justify-content: space-between;
@@ -152,10 +152,40 @@
             text-align: center;
             color: #333;
         }
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        .preloader-logo {
+            width: 200px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .preloader.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="preloader" id="preloader">
+        <img src="logo.png" alt="Picload Logo" class="preloader-logo">
+    </div>
+    
     <header>
         <a href="index.html">Picload</a>
     </header>
@@ -187,157 +217,177 @@
     </div>
     
     <script>
-  let imagesData = [];
+        let imagesData = [];
 
-  async function loadImages() {
-    try {
-      const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
-      if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
-      const data = await response.json();
-      console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
+        async function loadImages() {
+            try {
+                const response = await fetch('/.netlify/functions/get-images?t=' + Date.now());
+                if (!response.ok) throw new Error('Fetch failed: ' + response.statusText);
+                const data = await response.json();
+                console.log('Raw data in photo.html:', JSON.stringify(data, null, 2));
 
-      if (!data.images || !Array.isArray(data.images)) {
-        throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
-      }
+                if (!data.images || !Array.isArray(data.images)) {
+                    throw new Error('Expected data.images to be an array, got: ' + JSON.stringify(data.images));
+                }
 
-      imagesData = data.images;
-      displayPhoto();
-    } catch (error) {
-      console.error('Error loading images:', error);
-      document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
-    }
-  }
+                imagesData = data.images;
+                displayPhoto();
+            } catch (error) {
+                console.error('Error loading images:', error);
+                document.getElementById('photoDetails').innerHTML = `<p>Error: ${error.message}</p>`;
+                document.getElementById('preloader').style.display = 'none';
+            }
+        }
 
-  function displayPhoto() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const photoId = urlParams.get('id');
-    const image = imagesData.find(img => img.id === photoId);
+        function displayPhoto() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const photoId = urlParams.get('id');
+            const image = imagesData.find(img => img.id === photoId);
 
-    if (!image) {
-      document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
-      return;
-    }
+            if (!image) {
+                document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
+                document.getElementById('preloader').style.display = 'none';
+                return;
+            }
 
-    const img = new Image();
-    const thumbnailUrl = image.url;
-    img.src = thumbnailUrl;
-    img.onload = async () => {
-      const photoImage = document.getElementById('photoImage');
-      photoImage.src = thumbnailUrl;
-      photoImage.alt = image.title.replace(/-\d{13}$/, '');
-      document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
-      document.getElementById('photoDescription').textContent = image.description || 'No description';
-      
-      const response = await fetch(image.url, { method: 'HEAD' });
-      const fileSize = response.headers.get('content-length');
-      document.getElementById('photoFileSize').textContent = fileSize
-        ? fileSize < 1024 * 1024
-          ? `${(fileSize / 1024).toFixed(2)} KB`
-          : `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
-        : 'Unknown';
+            const img = new Image();
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale');
+            img.src = thumbnailUrl;
+            img.onload = async () => {
+                const photoImage = document.getElementById('photoImage');
+                photoImage.src = thumbnailUrl;
+                photoImage.alt = image.title.replace(/-\d{13}$/, '');
+                document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
+                document.getElementById('photoDescription').textContent = image.description || 'No description';
+                
+                const response = await fetch(image.url, { method: 'HEAD' });
+                const fileSize = response.headers.get('content-length');
+                document.getElementById('photoFileSize').textContent = fileSize
+                    ? fileSize < 1024 * 1024
+                      ? `${(fileSize / 1024).toFixed(2)} KB`
+                      : `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
+                    : 'Unknown';
 
-      document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
-      document.getElementById('photoDownloads').textContent = image.downloads || 0;
+                document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
+                document.getElementById('photoDownloads').textContent = image.downloads || 0;
 
-      const tagsContainer = document.getElementById('photoTags');
-      tagsContainer.innerHTML = '';
-      image.tags?.forEach(tag => {
-        const tagElement = document.createElement('span');
-        tagElement.className = 'tag';
-        tagElement.textContent = tag;
-        tagsContainer.appendChild(tagElement);
-      });
+                const tagsContainer = document.getElementById('photoTags');
+                tagsContainer.innerHTML = '';
+                image.tags?.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.textContent = tag;
+                    tagsContainer.appendChild(tagElement);
+                });
 
-      document.getElementById('downloadBtn').onclick = () => downloadImage(image);
-      displaySuggestions(image);
-    };
-  }
+                document.getElementById('downloadBtn').onclick = () => downloadImage(image);
+                displaySuggestions(image);
 
-  function displaySuggestions(currentImage) {
-    const suggestionsGrid = document.getElementById('suggestionsGrid');
-    const similarImages = imagesData
-      .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 15);
+                document.getElementById('preloader').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('preloader').style.display = 'none';
+                }, 500);
+            };
+            img.onerror = () => {
+                document.getElementById('photoDetails').innerHTML = '<p>Failed to load image</p>';
+                document.getElementById('preloader').style.display = 'none';
+            };
+        }
 
-    suggestionsGrid.innerHTML = '';
-    similarImages.forEach(image => {
-      const card = document.createElement('div');
-      card.className = 'suggestion-card';
-      const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
-      card.innerHTML = `
-        <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
-        <p>${image.title.replace(/-\d{13}$/, '')}</p>
-      `;
-      card.addEventListener('click', () => {
-        window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
-      });
-      suggestionsGrid.appendChild(card);
-    });
-  }
+        function displaySuggestions(currentImage) {
+            const suggestionsGrid = document.getElementById('suggestionsGrid');
+            const similarImages = imagesData
+                .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 15);
 
-  async function downloadImage(image) {
-    const resolution = document.getElementById('resolutionSelect').value;
-    let url = image.url;
-    const img = new Image();
-    img.src = image.url;
+            suggestionsGrid.innerHTML = '';
+            similarImages.forEach(image => {
+                const card = document.createElement('div');
+                card.className = 'suggestion-card';
+                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
+                card.innerHTML = `
+                    <img src="${thumbnailUrl}" alt="${image.title.replace(/-\d{13}$/, '')}">
+                    <p>${image.title.replace(/-\d{13}$/, '')}</p>
+                `;
+                card.addEventListener('click', () => {
+                    window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
+                });
+                suggestionsGrid.appendChild(card);
+            });
+        }
 
-    await new Promise(resolve => img.onload = resolve);
-    const isPortrait = img.height > img.width;
-    const maxSize = resolution === 'original' ? null : parseInt(resolution);
+        async function downloadImage(image) {
+            const resolution = document.getElementById('resolutionSelect').value;
+            let url = image.url;
+            const img = new Image();
+            img.src = image.url;
 
-    if (maxSize) {
-      const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-      url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
-    }
+            await new Promise(resolve => img.onload = resolve);
+            const isPortrait = img.height > img.width;
+            const maxSize = resolution === 'original' ? null : parseInt(resolution);
 
-    try {
-      console.log('Original image.title:', image.title);
-      const cleanTitle = image.title.replace(/-\d{13}$/, '').replace(/\s+/g, '_');
-      console.log('Cleaned title:', cleanTitle);
-      console.log('Download URL:', url);
-      
-      const response = await fetch(url);
-      console.log('Response headers:', Object.fromEntries(response.headers));
-      const blob = await response.blob();
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${cleanTitle}${resolution === 'original' ? '' : `-${maxSize}px`}.jpg`;
-      console.log('link.download:', link.download);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+            if (maxSize) {
+                const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
+                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+            }
 
-      const updateResponse = await fetch('/.netlify/functions/update-downloads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id: image.id }),
-      });
-      if (!updateResponse.ok) throw new Error('Failed to update downloads');
-      const updateData = await updateResponse.json();
+            try {
+                console.log('Original image.title:', image.title);
+                const cleanTitle = image.title.replace(/-\d{13}$/, '').replace(/\s+/g, '_');
+                console.log('Cleaned title:', cleanTitle);
+                console.log('Image URL:', url);
 
-      image.downloads = updateData.downloads;
-      document.getElementById('photoDownloads').textContent = image.downloads;
-    } catch (error) {
-      console.error('Download failed:', error);
-      alert('Failed to download image.');
-    }
-  }
+                const proxyUrl = `/.netlify/functions/proxy-image?url=${encodeURIComponent(url)}&title=${encodeURIComponent(cleanTitle)}`;
+                console.log('Proxy URL:', proxyUrl);
 
-  document.addEventListener('DOMContentLoaded', () => {
-    loadImages();
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error(`Proxy failed: ${await response.text()}`);
+                console.log('Proxy headers:', Object.fromEntries(response.headers.entries()));
 
-    const photoImage = document.getElementById('photoImage');
-    photoImage.addEventListener('contextmenu', e => e.preventDefault());
-    photoImage.addEventListener('dragstart', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (e.key === 'PrintScreen') {
-        e.preventDefault();
-        alert('Screenshots are disabled on this page.');
-      }
-    });
-  });
-</script>
+                const blob = await response.blob();
+                const fileName = `${cleanTitle}${resolution === 'original' ? '' : `-${resolution}px`}.jpg`;
+                console.log('Intended fileName:', fileName);
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+                const updateResponse = await fetch('/.netlify/functions/update-downloads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_id: image.id }),
+                });
+                if (!updateResponse.ok) throw new Error('Failed to update downloads');
+                const updateData = await updateResponse.json();
+
+                image.downloads = updateData.downloads;
+                document.getElementById('photoDownloads').textContent = image.downloads;
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Failed to download image: ' + error.message);
+                document.getElementById('preloader').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadImages();
+
+            const photoImage = document.getElementById('photoImage');
+            photoImage.addEventListener('contextmenu', e => e.preventDefault());
+            photoImage.addEventListener('dragstart', e => e.preventDefault());
+            document.addEventListener('keydown', e => {
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    alert('Screenshots are disabled on this page.');
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9309d2a3ec9a675f',t:'MTc0NDcwMzEyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

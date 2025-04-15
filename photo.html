@@ -208,7 +208,7 @@
             }
         }
 
-         function displayPhoto() {
+        function displayPhoto() {
             const urlParams = new URLSearchParams(window.location.search);
             const photoId = urlParams.get('id');
             const image = imagesData.find(img => img.id === photoId);
@@ -219,10 +219,11 @@
             }
 
             const img = new Image();
-            img.src = image.url;
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_800,h_500,q_90,c_scale'); // Downgraded for display
+            img.src = thumbnailUrl;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
-                photoImage.src = image.url;
+                photoImage.src = thumbnailUrl;
                 photoImage.alt = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoTitle').textContent = image.title.replace(/-\d{13}$/, '');
                 document.getElementById('photoDescription').textContent = image.description || 'No description';
@@ -272,47 +273,47 @@
         }
 
         async function downloadImage(image) {
-            const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url; // Original URL by default
-            const img = new Image();
-            img.src = image.url;
+  const resolution = document.getElementById('resolutionSelect').value;
+  let url = image.url;
+  const img = new Image();
+  img.src = image.url;
 
-            await new Promise(resolve => img.onload = resolve);
-            const isPortrait = img.height > img.width;
-            const maxSize = resolution === 'original' ? null : parseInt(resolution);
+  await new Promise(resolve => img.onload = resolve);
+  const isPortrait = img.height > img.width;
+  const maxSize = resolution === 'original' ? null : parseInt(resolution);
 
-            if (maxSize) {
-                const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
-            }
+  if (maxSize) {
+    const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
+    url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+  }
 
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `${image.title.replace(/-\d{13}$/, '')}-${resolution === 'original' ? 'original' : maxSize}px.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const cleanTitle = image.title.replace(/-\d{13}$/, ''); // e.g., "Pic One"
+    link.download = `${cleanTitle}${resolution === 'original' ? '' : `-${maxSize}px`}.jpg`; // Preserve spaces
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 
-                const updateResponse = await fetch('/.netlify/functions/update-downloads', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_id: image.id }),
-                });
-                if (!updateResponse.ok) throw new Error('Failed to update downloads');
-                const updateData = await updateResponse.json();
+    const updateResponse = await fetch('/.netlify/functions/update-downloads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ public_id: image.id }),
+    });
+    if (!updateResponse.ok) throw new Error('Failed to update downloads');
+    const updateData = await updateResponse.json();
 
-                image.downloads = updateData.downloads;
-                document.getElementById('photoDownloads').textContent = image.downloads;
-            } catch (error) {
-                console.error('Download failed:', error);
-                alert('Failed to download image.');
-            }
-        }
-
+    image.downloads = updateData.downloads;
+    document.getElementById('photoDownloads').textContent = image.downloads;
+  } catch (error) {
+    console.error('Download failed:', error);
+    alert('Failed to download image.');
+  }
+}
         document.addEventListener('DOMContentLoaded', () => {
             loadImages();
 

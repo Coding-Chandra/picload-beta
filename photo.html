@@ -317,7 +317,7 @@
             similarImages.forEach(image => {
                 const card = document.createElement('div');
                 card.className = 'suggestion-card';
-                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
+                const thumbnailUrl = image.url;
                 card.innerHTML = `
                     <img src="${thumbnailUrl}" alt="${formatTitle(image.title)}">
                     <p>${formatTitle(image.title)}</p>

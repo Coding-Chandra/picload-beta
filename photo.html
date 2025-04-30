@@ -100,57 +100,70 @@
             border-radius: 15px;
             font-size: 0.9rem;
         }
-        select {
+        .download-select {
             width: 100%;
             padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        .download-btn {
-            display: block;
             background: linear-gradient(45deg, #4CAF50, #66BB6A);
             color: #fff;
-            text-decoration: none;
-            padding: 0.75rem;
-            text-align: center;
+            border: none;
             border-radius: 10px;
+            font-size: 1rem;
             font-weight: 500;
+            cursor: pointer;
             transition: background 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
         }
-        .download-btn:hover {
+        .download-select:hover {
             background: linear-gradient(45deg, #388E3C, #4CAF50);
         }
-        .suggestions {
-            margin-top: 2rem;
-        }
-        .suggestions h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .suggestions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        .suggestion-card {
+        .related-images {
+            margin-top: 3rem;
+            padding: 2rem;
             background: #fff;
-            border-radius: 10px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .related-images h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        .related-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .related-card {
+            background: #fff;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
             cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .suggestion-card img {
+        .related-card:hover |:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        .related-card img {
             width: 100%;
-            height: 150px;
+            height: 180px;
             object-fit: cover;
+            border-radius: 12px 12px 0 0;
         }
-        .suggestion-card p {
-            padding: 0.5rem;
-            font-size: 0.9rem;
+        .related-card p {
+            padding: 0.75rem;
+            font-size: 0.95rem;
             text-align: center;
             color: #333;
+            background: #f9f9f9;
+            border-radius: 0 0 12px 12px;
         }
         .preloader {
             position: fixed;
@@ -201,25 +214,25 @@
             <p><strong>OG Resolution:</strong> <span id="photoResolution"></span></p>
             <p><strong>Downloads:</strong> <span id="photoDownloads"></span></p>
             <div class="tags" id="photoTags"></div>
-            <select id="resolutionSelect">
+            <select class="download-select" id="downloadSelect" onchange="downloadImageFromSelect()">
+                <option value="" disabled selected>Download Image</option>
                 <option value="original">Original Resolution</option>
                 <option value="1920">1920px (Max Width/Height)</option>
                 <option value="1280">1280px (Max Width/Height)</option>
                 <option value="800">800px (Max Width/Height)</option>
             </select>
-            <a class="download-btn" id="downloadBtn">Download</a>
         </div>
         
-        <div class="suggestions">
-            <h2>Similar Photos</h2>
-            <div class="suggestions-grid" id="suggestionsGrid"></div>
+        <div class="related-images">
+            <h2>Related Images</h2>
+            <div class="related-images-grid" id="relatedImagesGrid"></div>
         </div>
     </div>
     
     <script>
         let imagesData = [];
+        let currentImage = null;
 
-        // Format title to "Pic One"
         function formatTitle(title) {
             if (!title) return 'Untitled';
             const cleanTitle = title.split('/').pop().replace(/-\d{13}$/, '');
@@ -252,27 +265,27 @@
         function displayPhoto() {
             const urlParams = new URLSearchParams(window.location.search);
             const photoId = urlParams.get('id');
-            const image = imagesData.find(img => img.id === photoId);
+            currentImage = imagesData.find(img => img.id === photoId);
 
-            if (!image) {
+            if (!currentImage) {
                 document.getElementById('photoDetails').innerHTML = '<p>Photo not found</p>';
                 document.getElementById('preloader').style.display = 'none';
                 return;
             }
 
-            console.log('Image object:', JSON.stringify(image, null, 2));
+            console.log('Image object:', JSON.stringify(currentImage, null, 2));
 
             const img = new Image();
-            const thumbnailUrl = image.url;
+            const thumbnailUrl = currentImage.url;
             img.src = thumbnailUrl;
             img.onload = async () => {
                 const photoImage = document.getElementById('photoImage');
                 photoImage.src = thumbnailUrl;
-                photoImage.alt = formatTitle(image.title);
-                document.getElementById('photoTitle').textContent = formatTitle(image.title);
-                document.getElementById('photoDescription').textContent = image.description || 'No description';
+                photoImage.alt = formatTitle(currentImage.title);
+                document.getElementById('photoTitle').textContent = formatTitle(currentImage.title);
+                document.getElementById('photoDescription').textContent = currentImage.description || 'No description';
                 
-                const response = await fetch(image.url, { method: 'HEAD' });
+                const response = await fetch(currentImage.url, { method: 'HEAD' });
                 const fileSize = response.headers.get('content-length');
                 document.getElementById('photoFileSize').textContent = fileSize
                     ? fileSize < 1024 * 1024
@@ -281,19 +294,18 @@
                     : 'Unknown';
 
                 document.getElementById('photoResolution').textContent = `${img.width}x${img.height}`;
-                document.getElementById('photoDownloads').textContent = image.downloads || 0;
+                document.getElementById('photoDownloads').textContent = currentImage.downloads || 0;
 
                 const tagsContainer = document.getElementById('photoTags');
                 tagsContainer.innerHTML = '';
-                image.tags?.forEach(tag => {
+                currentImage.tags?.forEach(tag => {
                     const tagElement = document.createElement('span');
                     tagElement.className = 'tag';
                     tagElement.textContent = tag;
                     tagsContainer.appendChild(tagElement);
                 });
 
-                document.getElementById('downloadBtn').onclick = () => downloadImage(image);
-                displaySuggestions(image);
+                displayRelatedImages();
 
                 document.getElementById('preloader').classList.add('fade-out');
                 setTimeout(() => {
@@ -306,18 +318,19 @@
             };
         }
 
-        function displaySuggestions(currentImage) {
-            const suggestionsGrid = document.getElementById('suggestionsGrid');
-            const similarImages = imagesData
+        function displayRelatedImages() {
+            const relatedImagesGrid = document.getElementById('relatedImagesGrid');
+            const relatedImages = imagesData
                 .filter(img => img.id !== currentImage.id && img.tags?.some(tag => currentImage.tags?.includes(tag)))
                 .sort(() => 0.5 - Math.random())
                 .slice(0, 15);
 
-            suggestionsGrid.innerHTML = '';
-            similarImages.forEach(image => {
+            relatedImagesGrid.innerHTML = '';
+            relatedImages.forEach(image => {
                 const card = document.createElement('div');
-                card.className = 'suggestion-card';
-                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,q_50,c_thumb');
+                card waiter
+                card.className = 'related-card';
+                const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_250,h_180,q_50,c_thumb');
                 card.innerHTML = `
                     <img src="${thumbnailUrl}" alt="${formatTitle(image.title)}">
                     <p>${formatTitle(image.title)}</p>
@@ -325,15 +338,17 @@
                 card.addEventListener('click', () => {
                     window.location.href = `photo.html?id=${encodeURIComponent(image.id)}`;
                 });
-                suggestionsGrid.appendChild(card);
+                relatedImagesGrid.appendChild(card);
             });
         }
 
-        async function downloadImage(image) {
-            const resolution = document.getElementById('resolutionSelect').value;
-            let url = image.url;
+        async function downloadImageFromSelect() {
+            const resolution = document.getElementById('downloadSelect').value;
+            if (!resolution || !currentImage) return;
+
+            let url = currentImage.url;
             const img = new Image();
-            img.src = image.url;
+            img.src = currentImage.url;
 
             await new Promise(resolve => img.onload = resolve);
             const isPortrait = img.height > img.width;
@@ -341,13 +356,13 @@
 
             if (maxSize) {
                 const transform = isPortrait ? `h_${maxSize},c_scale` : `w_${maxSize},c_scale`;
-                url = `${image.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
+                url = `${currentImage.url.replace(/upload\/v\d+/, `upload/${transform},q_70`)}`;
             }
 
             try {
-                console.log('Image ID:', image.id);
-                console.log('Original image.title:', image.title);
-                const cleanTitle = formatTitle(image.title); // Use formatted title
+                console.log('Image ID:', currentImage.id);
+                console.log('Original image.title:', currentImage.title);
+                const cleanTitle = formatTitle(currentImage.title);
                 console.log('Cleaned title:', cleanTitle);
                 console.log('Image URL:', url);
 
@@ -370,17 +385,20 @@
                 const updateResponse = await fetch('/.netlify/functions/update-downloads', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_id: image.id }),
+                    body: JSON.stringify({ public_id: currentImage.id }),
                 });
                 if (!updateResponse.ok) throw new Error('Failed to update downloads');
                 const updateData = await updateResponse.json();
 
-                image.downloads = updateData.downloads;
-                document.getElementById('photoDownloads').textContent = image.downloads;
+                currentImage.downloads = updateData.downloads;
+                document.getElementById('photoDownloads').textContent = currentImage.downloads;
+
+                document.getElementById('downloadSelect').value = '';
             } catch (error) {
                 console.error('Download failed:', error);
                 alert('Failed to download image: ' + error.message);
                 document.getElementById('preloader').style.display = 'none';
+                document.getElementById('downloadSelect').value = '';
             }
         }
 

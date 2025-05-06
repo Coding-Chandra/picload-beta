@@ -1,4 +1,3 @@
-// get-script.js
 document.addEventListener('DOMContentLoaded', () => {
     const gallery = document.getElementById('photoGallery');
     const loadingMessage = document.getElementById('loadingMessage');
@@ -7,15 +6,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchBar = document.getElementById('searchBar');
     const sortSelect = document.getElementById('sortSelect');
     const categoryFilter = document.getElementById('categoryFilter');
+    const myPhotosToggle = document.getElementById('myPhotosToggle');
+    const myPhotosCheckbox = document.getElementById('myPhotos');
 
     let allImages = [];
     let activeTags = new Set();
+    let currentUser = null;
+
+    // Load Netlify Identity
+    const script = document.createElement('script');
+    script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
+    document.head.appendChild(script);
+
+    script.onload = () => {
+        netlifyIdentity.on('init', user => {
+            currentUser = user;
+            const authLinks = document.getElementById('authLinks');
+            const authButton = document.getElementById('authButton');
+            const uploadLink = document.getElementById('uploadLink');
+            if (user) {
+                authButton.textContent = 'Log Out';
+                authButton.onclick = () => netlifyIdentity.logout();
+                uploadLink.style.display = 'inline-block';
+                myPhotosToggle.style.display = 'flex';
+            }
+            fetchImages();
+        });
+
+        netlifyIdentity.on('logout', () => {
+            window.location.href = 'index.html';
+        });
+    };
 
     window.addEventListener('load', () => {
         document.getElementById('preloader').style.display = 'none';
     });
 
-    // Format title to "Pic One"
     function formatTitle(title) {
         if (!title) return 'Untitled';
         const cleanTitle = title.split('/').pop().replace(/-\d{13}$/, '');
@@ -32,22 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.style.display = 'none';
             emptyGallery.style.display = 'none';
 
-            const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`);
+            const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`, {
+                headers: currentUser ? {
+                    'Authorization': `Bearer ${currentUser.token.access_token}`,
+                } : {},
+            });
             if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
             const data = await response.json();
-            console.log('Raw fetched data:', JSON.stringify(data, null, 2));
-
-            let images = [];
-            if (Array.isArray(data)) {
-                images = data;
-            } else if (data.images && Array.isArray(data.images)) {
-                images = data.images;
-            } else {
-                throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
-            }
-
-            allImages = images;
+            let images = Array.isArray(data) ? data : data.images || [];
+            allImages = images.map(image => ({
+                ...image,
+                folder: image.id.split('/')[0],
+            }));
             renderGallery(allImages);
             renderCategoryFilter(allImages);
         } catch (error) {
@@ -70,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         emptyGallery.style.display = 'none';
         gallery.innerHTML = images.map(image => {
-            const displayTitle = formatTitle(image.title); // Use formatted title
+            const displayTitle = formatTitle(image.title);
             const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_90,c_thumb');
             return `
                 <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
@@ -110,9 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.add('active');
                 }
                 updateGallery();
-                if (activeTags.size === 0 && !searchBar.value) {
-                    emptyGallery.style.display = 'none';
-                }
             });
         });
     }
@@ -125,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'old-to-new':
                 return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
             case 'most-downloaded':
-                return sorted.sort((a, b) => b.downloads - a.downloads);
+                return sorted.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
             case 'shuffled':
                 return sorted.sort(() => Math.random() - 0.5);
             default:
@@ -150,19 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
+        if (currentUser && myPhotosCheckbox.checked) {
+            filteredImages = filteredImages.filter(image =>
+                image.folder === 'users' && image.id.startsWith(`users/${currentUser.id}/`)
+            );
+        }
+
         const sortBy = sortSelect.value;
         filteredImages = sortImages(filteredImages, sortBy);
         renderGallery(filteredImages);
     }
 
-    searchBar.addEventListener('input', () => {
-        updateGallery();
-        if (!searchBar.value) {
-            emptyGallery.style.display = 'none';
-        }
-    });
-
+    searchBar.addEventListener('input', updateGallery);
     sortSelect.addEventListener('change', updateGallery);
-
-    fetchImages();
+    myPhotosCheckbox.addEventListener('change', updateGallery);
 });

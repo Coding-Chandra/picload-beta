@@ -19,7 +19,12 @@
         <div class="branding">
             PICLOAD
         </div>
-        <input type="text" class="search-bar" id="searchBar" placeholder= "🔍︎ Search by tags or keywords...">
+        <input type="text" class="search-bar" id="searchBar" placeholder="🔍︎ Search by tags or keywords...">
+        <div class="auth-links" id="authLinks">
+            <a href="upload.html" class="admin-link" id="uploadLink" style="display: none;"><button>Upload Photo</button></a>
+            <a href="admin.html" class="admin-link"><button>Admin</button></a>
+            <a href="signup.html" class="admin-link"><button id="authButton">Sign Up / Log In</button></a>
+        </div>
     </header>
     
     <div class="category-filter" id="categoryFilter"></div>
@@ -33,6 +38,10 @@
                     <option value="shuffled">Shuffled</option>
                     <option value="most-downloaded">Most Downloaded</option>
                 </select>
+            </div>
+            <div class="my-photos-toggle" id="myPhotosToggle" style="display: none;">
+                <label for="myPhotos">My Photos Only</label>
+                <input type="checkbox" id="myPhotos">
             </div>
         </div>
         
@@ -49,5 +58,5 @@
     </div>
     
     <script src="get-script.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b7aec0fafab0c1',t:'MTc0NjUyNjE3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

@@ -87,7 +87,7 @@ header .search-bar {
     margin: 0 1rem;
     padding: 0.75rem 1rem;
     border: none;
-    border-radius: 12px; /* Softer corners */
+    border-radius: 12px;
     font-size: 1rem;
     transition: 0.3s;
     color: #222;
@@ -117,8 +117,11 @@ header .search-bar:focus {
     color: #222;
     box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.75);
 }
-header .admin-link a,
-.download-btn {
+header .auth-links {
+    display: flex;
+    gap: 0.5rem;
+}
+header .auth-links button {
     color: #fff;
     border-radius: 12px;
     text-decoration: none;
@@ -131,14 +134,12 @@ header .admin-link a,
     transition: all 0.3s ease;
     cursor: pointer;
 }
-header .admin-link a:hover,
-.download-btn:hover {
+header .auth-links button:hover {
     background: linear-gradient(135deg, #005BB5, #003087);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
-header .admin-link a:active,
-.download-btn:active {
+header .auth-links button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
@@ -207,7 +208,7 @@ header .admin-link a:active,
     padding: 0.5rem 2rem 0.5rem 1rem;
     background: transparent;
     border: 1px solid #ddd;
-    border-radius: 12px; /* Softer corners */
+    border-radius: 12px;
     font-size: 0.9rem;
     font-weight: 500;
     color: #555;
@@ -227,6 +228,17 @@ header .admin-link a:active,
     font-size: 0.7rem;
     color: #555;
     pointer-events: none;
+}
+
+.my-photos-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+.my-photos-toggle input {
+    cursor: pointer;
 }
 
 .gallery {

@@ -278,11 +278,11 @@ header .auth-links button:active {
 
 /* Gallery */
 .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-    animation: fadeIn 0.5s ease-in;
+    display: grid !important; /* Force grid layout */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; /* Ensure grid columns */
+    gap: 1.5rem !important;
+    padding: 1rem !important;
+    animation: fadeIn 0.5s ease-in !important;
 }
 
 @keyframes fadeIn {
@@ -300,6 +300,8 @@ header .auth-links button:active {
     position: relative;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    display: flex !important; /* Ensure card uses flex for content */
+    flex-direction: column !important;
 }
 
 .photo-card:hover {
@@ -311,6 +313,7 @@ header .auth-links button:active {
     position: relative;
     width: 100%;
     height: 250px;
+    flex-shrink: 0; /* Prevent image wrapper from shrinking */
 }
 
 .photo-card .image-wrapper::after {
@@ -339,6 +342,7 @@ header .auth-links button:active {
 
 .photo-info {
     padding: 1rem;
+    flex-grow: 1; /* Allow info to grow and push to bottom */
 }
 
 .photo-info h3 {
@@ -402,6 +406,6 @@ header .auth-links button:active {
     }
 
     .gallery {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; /* Adjust grid on mobile */
     }
 }

@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://kit.fontawesome.com/cc720c3bd4.js" crossorigin="anonymous"></script>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
     <!-- Pre-loader -->
@@ -19,7 +20,10 @@
         <div class="branding">
             PICLOAD
         </div>
-        <input type="text" class="search-bar" id="searchBar" placeholder="🔍︎ Search by tags or keywords...">
+        <div class="search-container">
+            <input type="text" class="search-bar" id="searchBar" placeholder="🔍︎ Search by tags or keywords..." list="tagSuggestions">
+            <datalist id="tagSuggestions"></datalist>
+        </div>
         <div class="auth-links" id="authLinks">
             <a href="upload.html" class="admin-link" id="uploadLink" style="display: none;"><button>Upload Photo</button></a>
             <a href="admin.html" class="admin-link"><button>Admin</button></a>
@@ -31,17 +35,21 @@
     
     <div class="container">
         <div class="controls">
+            <div class="folder-options">
+                <select id="folderSelect">
+                    <option value="all" selected>All Photos</option>
+                    <option value="public">Public Photos</option>
+                    <option value="my-photos" id="myPhotosOption" style="display: none;">My Photos</option>
+                </select>
+            </div>
             <div class="sort-options">
                 <select id="sortSelect">
                     <option value="new-to-old" selected>New to Old</option>
                     <option value="old-to-new">Old to New</option>
+                    <option value="most-downloaded">Most Popular</option>
+                    <option value="alphabetical">Alphabetical</option>
                     <option value="shuffled">Shuffled</option>
-                    <option value="most-downloaded">Most Downloaded</option>
                 </select>
-            </div>
-            <div class="my-photos-toggle" id="myPhotosToggle" style="display: none;">
-                <label for="myPhotos">My Photos Only</label>
-                <input type="checkbox" id="myPhotos">
             </div>
         </div>
         
@@ -55,7 +63,22 @@
             <h2>No Photos Yet</h2>
             <p>Add some images in the admin area to get started.</p>
         </div>
+        <div id="verificationStatus" style="display: none; color: #d32f2f; text-align: center; margin-top: 1rem;"></div>
     </div>
     
     <script src="get-script.js"></script>
+    <script>
+        netlifyIdentity.on('init', user => {
+            if (window.location.hash.includes('confirmation_token')) {
+                netlifyIdentity.open();
+                netlifyIdentity.on('login', () => {
+                    window.location.href = '/';
+                });
+            } else if (user && !user.email_verified) {
+                document.getElementById('verificationStatus').textContent = 'Your email is not verified. Please check your inbox for a verification link.';
+                document.getElementById('verificationStatus').style.display = 'block';
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b7aec0fafab0c1',t:'MTc0NjUyNjE3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

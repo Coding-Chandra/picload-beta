@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchImages() {
         try {
             loadingMessage.style.display = 'block';
-            gallery.style.display = 'none'; // Ensure gallery is hidden during load
+            gallery.style.display = 'none';
             errorMessage.style.display = 'none';
             emptyGallery.style.display = 'none';
 
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         emptyGallery.style.display = 'none';
         gallery.innerHTML = images.map(image => {
-            const displayTitle = formatTitle(image.title); // Use formatted title
+            const displayTitle = formatTitle(image.title);
             const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_90,c_thumb');
             return `
                 <div class="photo-card">
@@ -85,11 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Explicitly set grid display and remove any inline styles that might conflict
-        gallery.style.display = 'grid';
-        gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-        gallery.style.gap = '1.5rem';
-        gallery.style.padding = '1rem';
+        // Force grid layout with explicit styles
+        gallery.style.display = 'grid !important';
+        gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr)) !important';
+        gallery.style.gap = '1.5rem !important';
+        gallery.style.padding = '1rem !important';
+        gallery.style.width = '100%'; // Ensure full width to prevent alignment issues
+
+        console.log('Gallery computed style:', window.getComputedStyle(gallery).display); // Debug grid application
 
         // Prevent right-click and drag
         document.querySelectorAll('.photo-card img').forEach(img => {

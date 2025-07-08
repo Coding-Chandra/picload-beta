@@ -1,4 +1,3 @@
-// get-script.js
 document.addEventListener('DOMContentLoaded', () => {
     const gallery = document.getElementById('photoGallery');
     const loadingMessage = document.getElementById('loadingMessage');
@@ -7,12 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchBar = document.getElementById('searchBar');
     const sortSelect = document.getElementById('sortSelect');
     const categoryFilter = document.getElementById('categoryFilter');
+    const authLinks = document.getElementById('authLinks');
+    const authButton = document.getElementById('authButton');
+    const dashboardLink = document.getElementById('dashboardLink');
+    const myPhotosToggle = document.getElementById('myPhotosToggle');
+    const myPhotosCheckbox = document.getElementById('myPhotosCheckbox');
 
     let allImages = [];
     let activeTags = new Set();
+    let currentUser = null;
 
+    // Hide preloader on load
     window.addEventListener('load', () => {
-        document.getElementById('preloader').style.display = 'none';
+        document.getElementById('preloader').classList.add('fade-out');
     });
 
     // Format title to "Pic One"
@@ -25,29 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .join(' ');
     }
 
-    async function fetchImages() {
+    async function fetchImages(userId = null) {
         try {
             loadingMessage.style.display = 'block';
             gallery.style.display = 'none';
             errorMessage.style.display = 'none';
             emptyGallery.style.display = 'none';
 
-            const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`);
+            const url = userId ? `/.netlify/functions/get-images?userId=${userId}&t=${Date.now()}` : `/.netlify/functions/get-images?t=${Date.now()}`;
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
             const data = await response.json();
-            console.log('Raw fetched data:', JSON.stringify(data, null, 2));
+            console.log('Fetched data:', data);
 
-            let images = [];
-            if (Array.isArray(data)) {
-                images = data;
-            } else if (data.images && Array.isArray(data.images)) {
-                images = data.images;
-            } else {
-                throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
-            }
-
-            allImages = images;
+            allImages = Array.isArray(data) ? data : (data.images || []);
             renderGallery(allImages);
             renderCategoryFilter(allImages);
         } catch (error) {
@@ -79,20 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="photo-info">
                         <h3>${displayTitle}</h3>
-                        <input type="hidden" class="original-title" value="${displayTitle}">
                     </div>
                 </div>
             `;
         }).join('');
 
-        // Force grid layout with explicit styles
-        gallery.style.display = 'grid !important';
-        gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr)) !important';
-        gallery.style.gap = '1.5rem !important';
-        gallery.style.padding = '1rem !important';
-        gallery.style.width = '100%'; // Ensure full width to prevent alignment issues
-
-        console.log('Gallery computed style:', window.getComputedStyle(gallery).display); // Debug grid application
+        gallery.style.display = 'grid';
+        gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+        gallery.style.gap = '1.5rem';
+        gallery.style.padding = '1rem';
 
         // Prevent right-click and drag
         document.querySelectorAll('.photo-card img').forEach(img => {
@@ -102,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCategoryFilter(images) {
-        const allTags = [...new Set(images.flatMap(img => img.tags))];
+        const allTags = [...new Set(images.flatMap(img => img.tags || []))];
         categoryFilter.innerHTML = allTags.map(tag => `
             <button class="filter-btn" data-tag="${tag}">${tag}</button>
         `).join('');
@@ -118,9 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.add('active');
                 }
                 updateGallery();
-                if (activeTags.size === 0 && !searchBar.value) {
-                    emptyGallery.style.display = 'none';
-                }
             });
         });
     }
@@ -133,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'old-to-new':
                 return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
             case 'most-downloaded':
-                return sorted.sort((a, b) => b.downloads - a.downloads);
+                return sorted.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
             case 'shuffled':
                 return sorted.sort(() => Math.random() - 0.5);
             default:
@@ -143,18 +133,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateGallery() {
         let filteredImages = [...allImages];
-        const searchTerm = searchBar.value.toLowerCase();
+        const searchTerm = searchBar.value.toLowerCase().trim();
         if (searchTerm) {
             filteredImages = filteredImages.filter(image =>
                 formatTitle(image.title).toLowerCase().includes(searchTerm) ||
-                image.description.toLowerCase().includes(searchTerm) ||
-                image.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+                (image.description || '').toLowerCase().includes(searchTerm) ||
+                (image.tags || []).some(tag => tag.toLowerCase().includes(searchTerm))
             );
         }
 
         if (activeTags.size > 0) {
             filteredImages = filteredImages.filter(image =>
-                [...activeTags].every(tag => image.tags.includes(tag))
+                (image.tags || []).some(tag => activeTags.has(tag))
             );
         }
 
@@ -163,14 +153,51 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGallery(filteredImages);
     }
 
-    searchBar.addEventListener('input', () => {
-        updateGallery();
-        if (!searchBar.value) {
-            emptyGallery.style.display = 'none';
+    // Auth Handling
+    netlifyIdentity.on('init', user => {
+        currentUser = user;
+        if (user) {
+            authButton.textContent = 'Log Out';
+            authButton.onclick = () => netlifyIdentity.logout();
+            dashboardLink.style.display = 'block';
+            myPhotosToggle.style.display = 'flex';
+            fetchImages(user.id); // Fetch user-specific images
+        } else {
+            authButton.textContent = 'Sign Up / Log In';
+            authButton.onclick = () => netlifyIdentity.open();
+            dashboardLink.style.display = 'none';
+            myPhotosToggle.style.display = 'none';
+            fetchImages(); // Fetch all images
         }
     });
 
-    sortSelect.addEventListener('change', updateGallery);
+    netlifyIdentity.on('login', user => {
+        currentUser = user;
+        authButton.textContent = 'Log Out';
+        authButton.onclick = () => netlifyIdentity.logout();
+        dashboardLink.style.display = 'block';
+        myPhotosToggle.style.display = 'flex';
+        fetchImages(user.id);
+    });
 
+    netlifyIdentity.on('logout', () => {
+        currentUser = null;
+        authButton.textContent = 'Sign Up / Log In';
+        authButton.onclick = () => netlifyIdentity.open();
+        dashboardLink.style.display = 'none';
+        myPhotosToggle.style.display = 'none';
+        fetchImages();
+    });
+
+    // Event Listeners
+    searchBar.addEventListener('input', updateGallery);
+    sortSelect.addEventListener('change', updateGallery);
+    myPhotosCheckbox.addEventListener('change', () => {
+        if (currentUser) {
+            fetchImages(myPhotosCheckbox.checked ? currentUser.id : null);
+        }
+    });
+
+    // Initial Fetch
     fetchImages();
 });

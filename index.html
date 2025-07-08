@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Picload - Photo Gallery</title>
     <link rel="stylesheet" href="main-style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rufina:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="logo.png">
-    <script src="https://kit.fontawesome.com/cc720c3bd4.js" crossorigin="anonymous"></script>
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
@@ -17,152 +16,44 @@
     </div>
 
     <header>
-        <div class="branding">
-            PICLOAD
-        </div>
+        <div class="branding">PICLOAD</div>
         <div class="search-container">
-            <input type="text" class="search-bar" id="searchBar" placeholder="🔍︎ Search by tags or keywords..." list="tagSuggestions">
-            <datalist id="tagSuggestions"></datalist>
+            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 Search by tags or keywords...">
         </div>
         <div class="auth-links" id="authLinks">
-            <a href="dashboard.html" class="admin-link" id="dashboardLink" style="display: none;"><button>Dashboard</button></a>
-            <a href="admin.html" class="admin-link"><button>Admin</button></a>
-            <a href="signup.html" class="admin-link"><button id="authButton">Sign Up / Log In</button></a>
+            <a href="dashboard.html" class="auth-link" id="dashboardLink" style="display: none;"><button>Dashboard</button></a>
+            <a href="admin.html" class="auth-link"><button>Admin</button></a>
+            <button id="authButton">Sign Up / Log In</button>
         </div>
     </header>
-    
+
     <div class="category-filter" id="categoryFilter"></div>
-    
+
     <div class="container">
         <div class="controls">
-            <div class="folder-options">
-                <select id="folderSelect">
-                    <option value="all" selected>All Photos</option>
-                    <option value="public">Public Photos</option>
-                    <option value="my-photos" id="myPhotosOption" style="display: none;">My Photos</option>
-                </select>
-            </div>
             <div class="sort-options">
                 <select id="sortSelect">
-                    <option value="new-to-old" selected>New to Old</option>
+                    <option value="new-to-old">New to Old</option>
                     <option value="old-to-new">Old to New</option>
                     <option value="most-downloaded">Most Popular</option>
-                    <option value="alphabetical">Alphabetical</option>
                     <option value="shuffled">Shuffled</option>
                 </select>
             </div>
+            <div class="my-photos-toggle" id="myPhotosToggle" style="display: none;">
+                <input type="checkbox" id="myPhotosCheckbox">
+                <label for="myPhotosCheckbox">My Photos</label>
+            </div>
         </div>
-        
+
         <div class="loading" id="loadingMessage">Loading photos...</div>
         <div class="error-message" id="errorMessage" style="display: none;"></div>
-        
-        <div class="gallery" id="photoGallery"></div>
-        
         <div class="empty-gallery" id="emptyGallery" style="display: none;">
-            <img src="./assets/exclaim.png" style="height: 200px; width: 200px;">
             <h2>No Photos Yet</h2>
             <p>Add some images in the admin area to get started.</p>
         </div>
-        <div id="verificationStatus" style="display: none; color: #d32f2f; text-align: center; margin-top: 1rem;"></div>
+        <div class="gallery" id="photoGallery"></div>
     </div>
-    
+
     <script src="get-script.js"></script>
-    <script>
-        netlifyIdentity.on('init', user => {
-            const authLinks = document.getElementById('authLinks');
-            const authButton = document.getElementById('authButton');
-            const dashboardLink = document.getElementById('dashboardLink');
-            const myPhotosOption = document.getElementById('myPhotosOption');
-            const verificationStatus = document.getElementById('verificationStatus');
-
-            if (window.location.hash.includes('confirmation_token')) {
-                netlifyIdentity.open();
-                netlifyIdentity.on('login', () => {
-                    window.location.href = '/';
-                });
-            }
-
-            if (user) {
-                authButton.textContent = 'Log Out';
-                authButton.onclick = () => netlifyIdentity.logout();
-                dashboardLink.style.display = 'inline-block';
-                myPhotosOption.style.display = 'block';
-                if (!user.email_verified) {
-                    verificationStatus.textContent = 'Your email is not verified. Please check your inbox for a verification link.';
-                    verificationStatus.style.display = 'block';
-                } else {
-                    verificationStatus.style.display = 'none';
-                }
-            } else {
-                dashboardLink.style.display = 'none';
-                myPhotosOption.style.display = 'none';
-                verificationStatus.style.display = 'none';
-            }
-        });
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b7aec0fafab0c1',t:'MTc0NjUyNjE3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-<style>
-    header {
-        background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        position: fixed;
-        top: 0;
-        width: 100%;
-        z-index: 1000;
-        transition: all 0.3s ease;
-        padding: 1rem 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-    header .branding {
-        font-size: x-large;
-        font-weight: 600;
-        opacity: 0.95;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    header .branding:hover {
-        opacity: 1;
-        transform: scale(1.05);
-    }
-    .auth-links a button {
-        padding: 0.6rem 1.2rem;
-        background: linear-gradient(135deg, rgba(0, 122, 255, 0.9), rgba(0, 91, 181, 0.9));
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: all 0.3s ease, transform 0.2s ease;
-    }
-    .auth-links a button:hover {
-        background: linear-gradient(135deg, rgba(0, 91, 181, 0.9), rgba(0, 48, 135, 0.9));
-        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
-        transform: translateY(-2px) scale(1.05);
-    }
-    .auth-links a button:active {
-        transform: translateY(1px) scale(0.98);
-        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
-    }
-    .search-container input {
-        padding: 0.6rem 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        font-size: 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: #333;
-        transition: all 0.3s ease;
-    }
-    .search-container input:focus {
-        outline: none;
-        box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
-        background: rgba(255, 255, 255, 0.2);
-    }
-</style>
+</body>
 </html>

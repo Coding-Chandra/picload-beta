@@ -282,7 +282,8 @@ header .auth-links button:active {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; /* Ensure grid columns */
     gap: 1.5rem !important;
     padding: 1rem !important;
-    animation: fadeIn 0.5s ease-in !important;
+    width: 100% !important; /* Prevent width issues */
+    border: 2px dashed red; /* Temporary debug border */
 }
 
 @keyframes fadeIn {

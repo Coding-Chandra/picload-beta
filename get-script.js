@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchImages() {
         try {
             loadingMessage.style.display = 'block';
-            gallery.style.display = 'none';
+            gallery.style.display = 'none'; // Ensure gallery is hidden during load
             errorMessage.style.display = 'none';
             emptyGallery.style.display = 'none';
 
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const displayTitle = formatTitle(image.title); // Use formatted title
             const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_90,c_thumb');
             return `
-                <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
+                <div class="photo-card">
                     <div class="image-wrapper">
                         <img src="${thumbnailUrl}" alt="${displayTitle}" loading="lazy">
                     </div>
@@ -85,8 +85,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
+        // Explicitly set grid display and remove any inline styles that might conflict
         gallery.style.display = 'grid';
+        gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+        gallery.style.gap = '1.5rem';
+        gallery.style.padding = '1rem';
 
+        // Prevent right-click and drag
         document.querySelectorAll('.photo-card img').forEach(img => {
             img.addEventListener('contextmenu', e => e.preventDefault());
             img.addEventListener('dragstart', e => e.preventDefault());

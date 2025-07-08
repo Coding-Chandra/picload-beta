@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picload - My Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rufina';
+            background: linear-gradient(135deg, #e0e7ff 0%, #b3c8d8 100%);
+            background-attachment: fixed;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 70px;
+        }
+        header {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
+            color: #fff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        header .branding {
+            font-size: x-large;
+            font-weight: 600;
+            opacity: 0.95;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        header .branding:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        header button {
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.9), rgba(0, 91, 181, 0.9));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease, transform 0.2s ease;
+        }
+        header button:hover {
+            background: linear-gradient(135deg, rgba(0, 91, 181, 0.9), rgba(0, 48, 135, 0.9));
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+            transform: translateY(-2px) scale(1.05);
+        }
+        header button:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .dashboard {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 0 10px rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2.5rem;
+            animation: slideUp 0.6s ease-out;
+            overflow: hidden;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .profile {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .profile:hover {
+            transform: translateY(-5px);
+        }
+        .profile .avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #007AFF, #005BB5);
+            border-radius: 50%;
+            margin-right: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .profile .avatar:hover {
+            transform: scale(1.1);
+        }
+        .profile .user-info h3 {
+            font-size: 1.3rem;
+            color: #222;
+            margin: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .profile .user-info p {
+            font-size: 0.95rem;
+            color: #666;
+            margin: 0.3rem 0;
+        }
+        h2 {
+            font-size: 1.7rem;
+            color: #222;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #e0e7ff, #b3c8d8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: opacity 0.3s ease;
+        }
+        .photo-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            text-align: center;
+            padding: 1.2rem;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .photo-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        .photo-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .photo-card:hover img {
+            transform: scale(1.05);
+        }
+        .photo-card h3 {
+            font-size: 1.1rem;
+            color: #222;
+            margin: 0.7rem 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .photo-card .tags {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.7rem;
+        }
+        .photo-card .edit-tags {
+            display: none;
+            margin-top: 0.7rem;
+        }
+        .photo-card.editing .edit-tags {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .photo-card .edit-tags input {
+            width: 60%;
+            padding: 0.4rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: #333;
+        }
+        .photo-card .edit-tags button {
+            padding: 0.4rem 0.9rem;
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+        }
+        .photo-card .edit-tags button:hover {
+            background: linear-gradient(135deg, #388E3C, #2E7D32);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+        }
+        .photo-card .actions {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 0.7rem;
+        }
+        .photo-card button {
+            padding: 0.4rem 0.9rem;
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(255, 68, 68, 0.3);
+            transition: all 0.3s ease;
+        }
+        .photo-card button:hover {
+            background: linear-gradient(135deg, #cc0000, #990000);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+            transform: translateY(-2px);
+        }
+        .photo-card .edit-btn {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+        }
+        .photo-card .edit-btn:hover {
+            background: linear-gradient(135deg, #388E3C, #2E7D32);
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), inset 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        .pagination button {
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.9), rgba(0, 91, 181, 0.9));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+            transition: all 0.3s ease, transform 0.2s ease;
+        }
+        .pagination button:hover {
+            background: linear-gradient(135deg, rgba(0, 91, 181, 0.9), rgba(0, 48, 135, 0.9));
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+            transform: translateY(-2px) scale(1.05);
+        }
+        .pagination button:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+        }
+        .pagination button:disabled {
+            background: rgba(204, 204, 204, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .pagination span {
+            font-size: 1rem;
+            color: #222;
+            align-self: center;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .empty-message {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        .back-link {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .back-link a {
+            color: #007AFF;
+            text-decoration: none;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: color 0.3s ease;
+        }
+        .back-link a:hover {
+            color: #005BB5;
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+    <header>
+        <div class="branding">
+            PICLOAD
+        </div>
+        <button onclick="netlifyIdentity.logout()">Log Out</button>
+    </header>
+    <div class="container">
+        <div class="dashboard">
+            <div class="profile">
+                <div class="avatar">{{ .User.Email.charAt(0).toUpperCase() }}</div>
+                <div class="user-info">
+                    <h3>My Profile</h3>
+                    <p>{{ .User.Email }}</p>
+                </div>
+            </div>
+            <h2>My Photos</h2>
+            <div class="photo-grid" id="photoGrid"></div>
+            <div class="empty-message" id="emptyMessage" style="display: none;">You haven’t uploaded any photos yet. <a href="upload.html">Upload now</a>!</div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+        <div class="back-link">
+            <a href="index.html">Back to Gallery</a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const photoGrid = document.getElementById('photoGrid');
+            const emptyMessage = document.getElementById('emptyMessage');
+            const pagination = document.getElementById('pagination');
+            let currentPage = 1;
+            const photosPerPage = 6;
+            let allPhotos = [];
+
+            netlifyIdentity.on('init', user => {
+                if (!user) {
+                    window.location.href = 'signup.html';
+                    return;
+                }
+
+                fetchUserPhotos(user.id);
+            });
+
+            netlifyIdentity.on('logout', () => {
+                window.location.href = 'index.html';
+            });
+
+            async function fetchUserPhotos(userId) {
+                try {
+                    const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`, {
+                        headers: {
+                            'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
+                        },
+                    });
+                    if (!response.ok) throw new Error('Failed to fetch photos');
+
+                    const data = await response.json();
+                    allPhotos = data.filter(photo => photo.id.startsWith(`users/${userId}/`));
+
+                    if (allPhotos.length === 0) {
+                        emptyMessage.style.display = 'block';
+                        photoGrid.style.display = 'none';
+                        pagination.style.display = 'none';
+                        return;
+                    }
+
+                    emptyMessage.style.display = 'none';
+                    photoGrid.style.display = 'grid';
+                    pagination.style.display = 'flex';
+                    renderPhotos();
+                    setupPagination();
+                } catch (error) {
+                    console.error('Error fetching photos:', error);
+                    photoGrid.innerHTML = '<p>Error loading your photos. Try again later.</p>';
+                }
+            }
+
+            function renderPhotos() {
+                const start = (currentPage - 1) * photosPerPage;
+                const end = start + photosPerPage;
+                const paginatedPhotos = allPhotos.slice(start, end);
+
+                photoGrid.innerHTML = paginatedPhotos.map(photo => `
+                    <div class="photo-card" data-id="${photo.id}">
+                        <img src="${photo.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,c_thumb')}" alt="${photo.title}">
+                        <h3>${photo.title}</h3>
+                        <div class="tags">Tags: ${photo.tags.join(', ')}</div>
+                        <div class="edit-tags">
+                            <input type="text" value="${photo.tags.join(', ')}" data-id="${photo.id}">
+                            <button onclick="saveTags('${photo.id}')">Save</button>
+                        </div>
+                        <div class="actions">
+                            <button class="edit-btn" onclick="toggleEdit('${photo.id}')">Edit Tags</button>
+                            <button onclick="deletePhoto('${photo.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function setupPagination() {
+                const totalPages = Math.ceil(allPhotos.length / photosPerPage);
+                pagination.innerHTML = `
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+                `;
+            }
+
+            function changePage(page) {
+                if (page < 1 || page > Math.ceil(allPhotos.length / photosPerPage)) return;
+                currentPage = page;
+                renderPhotos();
+                setupPagination();
+            }
+
+            function toggleEdit(photoId) {
+                const card = document.querySelector(`.photo-card[data-id="${photoId}"]`);
+                card.classList.toggle('editing');
+            }
+
+            async function saveTags(photoId) {
+                const card = document.querySelector(`.photo-card[data-id="${photoId}"]`);
+                const input = card.querySelector('input');
+                const newTags = input.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+                try {
+                    const response = await fetch(`https://api.cloudinary.com/v1_1/dpemqdflm/resources/image/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${btoa(`${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`)}`,
+                        },
+                        body: JSON.stringify({
+                            public_id: photoId,
+                            tags: newTags,
+                        }),
+                    });
+
+                    if (!response.ok) throw new Error('Failed to update tags');
+
+                    const photo = allPhotos.find(p => p.id === photoId);
+                    photo.tags = newTags;
+                    card.querySelector('.tags').textContent = `Tags: ${newTags.join(', ')}`;
+                    toggleEdit(photoId);
+                } catch (error) {
+                    alert('Error updating tags: ' + error.message);
+                    console.error('Tag update error:', error);
+                }
+            }
+
+            async function deletePhoto(photoId) {
+                if (confirm('Are you sure you want to delete this photo?')) {
+                    try {
+                        const response = await fetch(`https://api.cloudinary.com/v1_1/dpemqdflm/delete_by_public_id`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Basic ${btoa(`${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`)}`,
+                            },
+                            body: JSON.stringify({ public_id: photoId, invalidate: true }),
+                        });
+
+                        if (!response.ok) throw new Error('Failed to delete photo');
+
+                        allPhotos = allPhotos.filter(photo => photo.id !== photoId);
+                        renderPhotos();
+                        setupPagination();
+                    } catch (error) {
+                        alert('Error deleting photo: ' + error.message);
+                        console.error('Delete error:', error);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

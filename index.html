@@ -26,6 +26,7 @@
         </div>
         <div class="auth-links" id="authLinks">
             <a href="upload.html" class="admin-link" id="uploadLink" style="display: none;"><button>Upload Photo</button></a>
+            <a href="dashboard.html" class="admin-link" id="dashboardLink" style="display: none;"><button>Dashboard</button></a>
             <a href="admin.html" class="admin-link"><button>Admin</button></a>
             <a href="signup.html" class="admin-link"><button id="authButton">Sign Up / Log In</button></a>
         </div>
@@ -69,14 +70,37 @@
     <script src="get-script.js"></script>
     <script>
         netlifyIdentity.on('init', user => {
+            const authLinks = document.getElementById('authLinks');
+            const authButton = document.getElementById('authButton');
+            const uploadLink = document.getElementById('uploadLink');
+            const dashboardLink = document.getElementById('dashboardLink');
+            const myPhotosOption = document.getElementById('myPhotosOption');
+            const verificationStatus = document.getElementById('verificationStatus');
+
             if (window.location.hash.includes('confirmation_token')) {
                 netlifyIdentity.open();
                 netlifyIdentity.on('login', () => {
                     window.location.href = '/';
                 });
-            } else if (user && !user.email_verified) {
-                document.getElementById('verificationStatus').textContent = 'Your email is not verified. Please check your inbox for a verification link.';
-                document.getElementById('verificationStatus').style.display = 'block';
+            }
+
+            if (user) {
+                authButton.textContent = 'Log Out';
+                authButton.onclick = () => netlifyIdentity.logout();
+                uploadLink.style.display = 'inline-block';
+                dashboardLink.style.display = 'inline-block';
+                myPhotosOption.style.display = 'block';
+                if (!user.email_verified) {
+                    verificationStatus.textContent = 'Your email is not verified. Please check your inbox for a verification link.';
+                    verificationStatus.style.display = 'block';
+                } else {
+                    verificationStatus.style.display = 'none';
+                }
+            } else {
+                uploadLink.style.display = 'none';
+                dashboardLink.style.display = 'none';
+                myPhotosOption.style.display = 'none';
+                verificationStatus.style.display = 'none';
             }
         });
     </script>

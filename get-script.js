@@ -84,13 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gallery.style.display = 'grid';
         gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-        gallery.style.gap = '1.5rem';
-        gallery.style.padding = '1rem';
-
-        document.querySelectorAll('.photo-card img').forEach(img => {
-            img.addEventListener('contextmenu', e => e.preventDefault());
-            img.addEventListener('dragstart', e => e.preventDefault());
-        });
+        gallery.style.gap = '1rem';
+        gallery.style.padding = '0.5rem';
     }
 
     function renderCategoryFilter(images) {

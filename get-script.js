@@ -87,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery.style.gap = '1.5rem';
         gallery.style.padding = '1rem';
 
-        // Prevent right-click and drag
         document.querySelectorAll('.photo-card img').forEach(img => {
             img.addEventListener('contextmenu', e => e.preventDefault());
             img.addEventListener('dragstart', e => e.preventDefault());
@@ -161,13 +160,13 @@ document.addEventListener('DOMContentLoaded', () => {
             authButton.onclick = () => netlifyIdentity.logout();
             dashboardLink.style.display = 'block';
             myPhotosToggle.style.display = 'flex';
-            fetchImages(user.id); // Fetch user-specific images
+            fetchImages(user.id);
         } else {
             authButton.textContent = 'Sign Up / Log In';
             authButton.onclick = () => netlifyIdentity.open();
             dashboardLink.style.display = 'none';
             myPhotosToggle.style.display = 'none';
-            fetchImages(); // Fetch all images
+            fetchImages();
         }
     });
 

@@ -21,13 +21,18 @@
             <input type="text" class="search-bar" id="searchBar" placeholder="🔍 Search by tags or keywords...">
         </div>
         <div class="auth-links" id="authLinks">
-            <a href="dashboard.html" class="auth-link" id="dashboardLink" style="display: none;"><button>Dashboard</button></a>
-            <a href="admin.html" class="auth-link"><button>Admin</button></a>
+            <nav class="menu" id="menu">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <div class="menu-items" id="menuItems">
+                    <a href="dashboard.html" class="menu-item" id="dashboardLink" style="display: none;"><button>Dashboard</button></a>
+                    <a href="admin.html" class="menu-item"><button>Admin</button></a>
+                </div>
+            </nav>
             <button id="authButton">Sign Up / Log In</button>
         </div>
     </header>
 
-    <div class="category-filter" id="categoryFilter"></div>
+    <div class="tag-cloud" id="tagCloud"></div>
 
     <div class="container">
         <div class="controls">
@@ -45,6 +50,12 @@
             </div>
         </div>
 
+        <div class="pagination" id="pagination" style="display: none;">
+            <button id="prevPage">Previous</button>
+            <span id="pageInfo"></span>
+            <button id="nextPage">Next</button>
+        </div>
+
         <div class="loading" id="loadingMessage">Loading photos...</div>
         <div class="error-message" id="errorMessage" style="display: none;"></div>
         <div class="empty-gallery" id="emptyGallery" style="display: none;">
@@ -52,9 +63,6 @@
             <p>Add some images in the admin area to get started.</p>
         </div>
         <div class="gallery" id="photoGallery"></div>
-        <div class="pagination" id="pagination" style="display: none; text-align: center; margin: 1rem 0;">
-            <button id="nextPageBtn">Next Page</button>
-        </div>
     </div>
 
     <script src="get-script.js"></script>

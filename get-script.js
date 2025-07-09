@@ -5,14 +5,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyGallery = document.getElementById('emptyGallery');
     const searchBar = document.getElementById('searchBar');
     const sortSelect = document.getElementById('sortSelect');
-    const categoryFilter = document.getElementById('categoryFilter');
+    const tagCloud = document.getElementById('tagCloud');
     const authLinks = document.getElementById('authLinks');
     const authButton = document.getElementById('authButton');
     const dashboardLink = document.getElementById('dashboardLink');
     const myPhotosToggle = document.getElementById('myPhotosToggle');
     const myPhotosCheckbox = document.getElementById('myPhotosCheckbox');
     const pagination = document.getElementById('pagination');
-    const nextPageBtn = document.getElementById('nextPageBtn');
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+    const menuToggle = document.getElementById('menuToggle');
+    const menuItems = document.getElementById('menuItems');
 
     let allImages = [];
     let activeTags = new Set();
@@ -54,18 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
             .join(' ');
     }
 
-    // Get thumbnail URL with 70% quality for index
-    function getThumbnailUrl(url) {
-        return url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_70,c_thumb');
-    }
-
     async function fetchImages(userId = null) {
         try {
             loadingMessage.style.display = 'block';
             gallery.style.display = 'none';
             errorMessage.style.display = 'none';
             emptyGallery.style.display = 'none';
-            pagination.style.display = 'none';
 
             const url = userId ? `/.netlify/functions/get-images?userId=${userId}&t=${Date.now()}` : `/.netlify/functions/get-images?t=${Date.now()}`;
             const response = await fetch(url);
@@ -75,10 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Fetched data:', data);
 
             allImages = Array.isArray(data) ? data : (data.images || []);
-            currentPage = 1;
-            renderGallery(allImages);
-            updatePagination();
-            renderCategoryFilter(allImages);
+            renderGallery();
+            renderTagCloud(allImages);
         } catch (error) {
             console.error('Error fetching images:', error);
             errorMessage.textContent = `Error: ${error.message}`;
@@ -87,14 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderGallery(images) {
+    function renderGallery() {
         loadingMessage.style.display = 'none';
         errorMessage.style.display = 'none';
 
-        const startIdx = (currentPage - 1) * imagesPerPage;
-        const paginatedImages = images.sort(() => Math.random() - 0.5).slice(startIdx, startIdx + imagesPerPage);
-
-        if (allImages.length === 0 || paginatedImages.length === 0) {
+        if (allImages.length === 0) {
             emptyGallery.style.display = 'block';
             gallery.style.display = 'none';
             pagination.style.display = 'none';
@@ -102,9 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         emptyGallery.style.display = 'none';
+        const startIdx = (currentPage - 1) * imagesPerPage;
+        const endIdx = startIdx + imagesPerPage;
+        const paginatedImages = allImages.slice(startIdx, endIdx);
+
         gallery.innerHTML = paginatedImages.map(image => {
             const displayTitle = formatTitle(image.title);
-            const thumbnailUrl = getThumbnailUrl(image.url); // 70% quality thumbnail
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_70,c_thumb'); // 70% quality for thumbnails
             return `
                 <div class="photo-card">
                     <div class="image-wrapper">
@@ -121,15 +118,20 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
         gallery.style.gap = '1rem';
         gallery.style.padding = '0.5rem';
+        pagination.style.display = 'flex';
+
+        prevPage.disabled = currentPage === 1;
+        nextPage.disabled = endIdx >= allImages.length;
+        pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(allImages.length / imagesPerPage)}`;
     }
 
-    function renderCategoryFilter(images) {
+    function renderTagCloud(images) {
         const allTags = [...new Set(images.flatMap(img => img.tags || []))];
-        categoryFilter.innerHTML = allTags.map(tag => `
-            <button class="filter-btn" data-tag="${tag}">${tag}</button>
+        tagCloud.innerHTML = allTags.map(tag => `
+            <button class="tag-btn" data-tag="${tag}">${tag}</button>
         `).join('');
 
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+        document.querySelectorAll('.tag-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tag = btn.dataset.tag;
                 if (activeTags.has(tag)) {
@@ -139,9 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeTags.add(tag);
                     btn.classList.add('active');
                 }
-                currentPage = 1;
+                currentPage = 1; // Reset to first page on tag change
                 updateGallery();
-                updatePagination();
             });
         });
     }
@@ -181,18 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sortBy = sortSelect.value;
         filteredImages = sortImages(filteredImages, sortBy);
-        renderGallery(filteredImages);
-        updatePagination();
-    }
-
-    function updatePagination() {
-        const totalPages = Math.ceil(allImages.length / imagesPerPage);
-        if (totalPages > 1) {
-            pagination.style.display = 'block';
-            nextPageBtn.disabled = currentPage >= totalPages;
-        } else {
-            pagination.style.display = 'none';
-        }
+        allImages = filteredImages; // Update allImages for pagination
+        currentPage = 1; // Reset to first page on filter/sort
+        renderGallery();
     }
 
     // Auth Handling
@@ -222,26 +214,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Event Listeners
-    searchBar.addEventListener('input', () => {
-        currentPage = 1;
-        updateGallery();
-    });
-    sortSelect.addEventListener('change', () => {
-        currentPage = 1;
-        updateGallery();
-    });
-    myPhotosCheckbox.addEventListener('change', () => {
-        if (currentUser) {
-            currentPage = 1;
-            fetchImages(myPhotosCheckbox.checked ? currentUser.id : null);
+    // Pagination and Menu Handling
+    prevPage.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderGallery();
         }
     });
-    nextPageBtn.addEventListener('click', () => {
-        currentPage++;
-        updateGallery();
-        updatePagination();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    nextPage.addEventListener('click', () => {
+        const totalPages = Math.ceil(allImages.length / imagesPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderGallery();
+        }
+    });
+
+    menuToggle.addEventListener('click', () => {
+        menuItems.classList.toggle('active');
+    });
+
+    // Event Listeners
+    searchBar.addEventListener('input', updateGallery);
+    sortSelect.addEventListener('change', updateGallery);
+    myPhotosCheckbox.addEventListener('change', () => {
+        if (currentUser) {
+            fetchImages(myPhotosCheckbox.checked ? currentUser.id : null);
+        }
     });
 
     // Initial Fetch

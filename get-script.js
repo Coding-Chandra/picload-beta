@@ -14,7 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let allImages = [];
     let activeTags = new Set();
-    let currentUser = null;
+    let currentUser = netlifyIdentity.currentUser(); // Check initial user state
+
+    // Sync user state with localStorage
+    function syncUserState(user) {
+        if (user) {
+            localStorage.setItem('netlifyUser', JSON.stringify({ id: user.id, email: user.email }));
+            authButton.textContent = 'Log Out';
+            authButton.onclick = () => netlifyIdentity.logout();
+            dashboardLink.style.display = 'block';
+            myPhotosToggle.style.display = 'flex';
+            fetchImages(user.id);
+        } else {
+            localStorage.removeItem('netlifyUser');
+            authButton.textContent = 'Sign Up / Log In';
+            authButton.onclick = () => netlifyIdentity.open();
+            dashboardLink.style.display = 'none';
+            myPhotosToggle.style.display = 'none';
+            fetchImages();
+        }
+    }
 
     // Hide preloader on load
     window.addEventListener('load', () => {
@@ -149,39 +168,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auth Handling
     netlifyIdentity.on('init', user => {
-        currentUser = user;
-        if (user) {
-            authButton.textContent = 'Log Out';
-            authButton.onclick = () => netlifyIdentity.logout();
-            dashboardLink.style.display = 'block';
-            myPhotosToggle.style.display = 'flex';
-            fetchImages(user.id);
-        } else {
-            authButton.textContent = 'Sign Up / Log In';
-            authButton.onclick = () => netlifyIdentity.open();
-            dashboardLink.style.display = 'none';
-            myPhotosToggle.style.display = 'none';
-            fetchImages();
-        }
+        syncUserState(user || netlifyIdentity.currentUser());
     });
 
     netlifyIdentity.on('login', user => {
-        currentUser = user;
-        authButton.textContent = 'Log Out';
-        authButton.onclick = () => netlifyIdentity.logout();
-        dashboardLink.style.display = 'block';
-        myPhotosToggle.style.display = 'flex';
-        fetchImages(user.id);
+        syncUserState(user);
     });
 
     netlifyIdentity.on('logout', () => {
-        currentUser = null;
-        authButton.textContent = 'Sign Up / Log In';
-        authButton.onclick = () => netlifyIdentity.open();
-        dashboardLink.style.display = 'none';
-        myPhotosToggle.style.display = 'none';
-        fetchImages();
+        syncUserState(null);
     });
+
+    // Initial state check
+    if (currentUser) {
+        syncUserState(currentUser);
+    } else {
+        const storedUser = localStorage.getItem('netlifyUser');
+        if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            currentUser = { id: userData.id, email: userData.email }; // Simplified user object
+            syncUserState(currentUser);
+        } else {
+            syncUserState(null);
+        }
+    }
 
     // Event Listeners
     searchBar.addEventListener('input', updateGallery);
@@ -193,5 +203,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initial Fetch
-    fetchImages();
+    fetchImages(currentUser ? currentUser.id : null);
 });

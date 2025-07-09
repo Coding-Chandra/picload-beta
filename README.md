@@ -8,7 +8,7 @@ A sleek, modern platform for image sharing and management.
 
 Picload is a web application designed to help users upload, organize, and share images with ease. Currently hosted at [picload.netlify.app](https://picload.netlify.app).
 
-## Current Status (v1.0)
+## Current Status (v1.25)
 
 This is a private repository for the initial release of Picload. Key features include:
 
@@ -16,6 +16,9 @@ This is a private repository for the initial release of Picload. Key features in
 - Responsive gallery view
 - Mobile-friendly interface
 - Image sharing capabilities
+- Adding user feauters
+- Adding User registration
+- Doing more orgenized stuff
 
 ## Roadmap
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picload - Photo Gallery</title>
+    <title>PICLOAD</title>
     <link rel="stylesheet" href="main-style.css">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
@@ -13,8 +13,8 @@
     </div>
 
     <header>
-        <div class="branding">PICLOAD</div>
-        <input type="text" id="searchBar" class="search-bar" placeholder="🔍︎ Search by tags or keywords...">
+        <img src="logo.png" alt="PICLOAD Logo" class="branding-logo">
+        <input type="text" id="searchBar" class="search-bar" placeholder="Search photos...">
         <div class="auth-links" id="authLinks">
             <button id="authButton" class="admin-link">Login</button>
         </div>
@@ -42,7 +42,6 @@
         <div class="error-message" id="errorMessage"></div>
         <div class="gallery" id="photoGallery"></div>
         <div class="empty-gallery" id="emptyGallery">
-              <img src="./assets/exclaim.png" style="height: 200px; width: 200px;">
             <h2>No Photos Found</h2>
             <p>Try adjusting your search or filters, or add images in the admin area.</p>
         </div>

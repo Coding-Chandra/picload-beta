@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortSelect = document.getElementById('sortSelect');
     const tagCloud = document.getElementById('tagCloud');
     const authLinks = document.getElementById('authLinks');
-    const authButton = document.getElementById('authButton');
+    const userButton = document.getElementById('userButton');
     const dashboardLink = document.getElementById('dashboardLink');
     const myPhotosToggle = document.getElementById('myPhotosToggle');
     const myPhotosCheckbox = document.getElementById('myPhotosCheckbox');
@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevPage = document.getElementById('prevPage');
     const nextPage = document.getElementById('nextPage');
     const pageInfo = document.getElementById('pageInfo');
-    const menuToggle = document.getElementById('menuToggle');
     const menuItems = document.getElementById('menuItems');
 
     let allImages = [];
@@ -25,19 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagesPerPage = 12;
     const majorTags = ['AI Generated', 'Wallpaper', 'Nature', 'Travel', 'Architecture & Interior', 'Street Peak'];
 
-    // Sync user state with localStorage
+    // Sync user state with localStorage and update button
     function syncUserState(user) {
         if (user) {
             localStorage.setItem('netlifyUser', JSON.stringify({ id: user.id, email: user.email }));
-            authButton.textContent = 'Log Out';
-            authButton.onclick = () => netlifyIdentity.logout();
+            userButton.textContent = '👤';
+            userButton.onclick = () => {
+                menuItems.classList.toggle('active');
+                if (netlifyIdentity.currentUser()) netlifyIdentity.open(); // Open profile or logout
+            };
             dashboardLink.style.display = 'block';
             myPhotosToggle.style.display = 'flex';
             fetchImages(user.id);
         } else {
             localStorage.removeItem('netlifyUser');
-            authButton.textContent = 'Sign Up / Log In';
-            authButton.onclick = () => netlifyIdentity.open();
+            userButton.textContent = '👤';
+            userButton.onclick = () => {
+                menuItems.classList.toggle('active');
+                netlifyIdentity.open(); // Open login/signup
+            };
             dashboardLink.style.display = 'none';
             myPhotosToggle.style.display = 'none';
             fetchImages();
@@ -230,8 +235,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    menuToggle.addEventListener('click', () => {
+    userButton.addEventListener('click', () => {
         menuItems.classList.toggle('active');
+        if (!netlifyIdentity.currentUser()) {
+            netlifyIdentity.open(); // Open login/signup if not logged in
+        }
     });
 
     // Event Listeners

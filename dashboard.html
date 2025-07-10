@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Picload - My Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+VN:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rufina:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rufina:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Rufina';
-            background: linear-gradient(135deg, #e0e7ff 0%, #b3c8d8 100%);
+            font-family: 'Rufina', serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e4f5 100%);
             background-attachment: fixed;
-            color: #333;
+            color: #4a4e69;
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -21,71 +21,59 @@
             padding-top: 70px;
         }
         header {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(250, 204, 21, 0.9));
-            color: #fff;
+            background: rgba(26, 26, 46, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            color: #e0e0e0;
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
             width: 100%;
             z-index: 1000;
-            transition: all 0.3s ease;
         }
         header .branding {
             font-size: x-large;
-            font-weight: 600;
-            opacity: 0.95;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        header .branding:hover {
-            opacity: 1;
-            transform: scale(1.05);
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         header button {
-            padding: 0.6rem 1.2rem;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.9), rgba(0, 91, 181, 0.9));
+            padding: 0.7rem 1.5rem;
+            background: #9a7d0a;
             color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 6px rgba(154, 125, 10, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         header button:hover {
-            background: linear-gradient(135deg, rgba(0, 91, 181, 0.9), rgba(0, 48, 135, 0.9));
-            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
-            transform: translateY(-2px) scale(1.05);
+            background: #8a6d09;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(154, 125, 10, 0.3);
         }
         header button:active {
-            transform: translateY(1px) scale(0.98);
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(154, 125, 10, 0.2);
         }
         .container {
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 2rem auto;
             padding: 0 1rem;
             width: 100%;
         }
         .dashboard {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 0 10px rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(74, 78, 105, 0.1);
+            padding: 2rem;
             animation: slideUp 0.6s ease-out;
-            overflow: hidden;
         }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
@@ -95,31 +83,27 @@
             display: flex;
             align-items: center;
             margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(74, 78, 105, 0.1);
             transition: transform 0.3s ease;
         }
         .profile:hover {
             transform: translateY(-5px);
         }
         .profile .avatar {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #007AFF, #005BB5);
+            width: 50px;
+            height: 50px;
+            background: #9a7d0a;
             border-radius: 50%;
-            margin-right: 1.5rem;
+            margin-right: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-weight: 600;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
         .profile .avatar:hover {
@@ -127,55 +111,46 @@
         }
         .profile .user-info h3 {
             font-size: 1.3rem;
-            color: #222;
+            color: #4a4e69;
             margin: 0;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         .profile .user-info p {
             font-size: 0.95rem;
-            color: #666;
+            color: #6b7280;
             margin: 0.3rem 0;
         }
         h2 {
             font-size: 1.7rem;
-            color: #222;
+            color: #4a4e69;
             margin-bottom: 2rem;
             text-align: center;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #e0e7ff, #b3c8d8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
             transition: opacity 0.3s ease;
         }
         .photo-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            background: #fff;
+            border-radius: 8px;
             overflow: hidden;
             text-align: center;
-            padding: 1.2rem;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            padding: 1rem;
+            box-shadow: 0 2px 6px rgba(74, 78, 105, 0.1);
+            transition: transform 0.3s ease;
         }
         .photo-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(74, 78, 105, 0.2);
         }
         .photo-card img {
             width: 100%;
             height: 150px;
             object-fit: cover;
-            border-radius: 10px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
             transition: transform 0.3s ease;
         }
         .photo-card:hover img {
@@ -183,13 +158,12 @@
         }
         .photo-card h3 {
             font-size: 1.1rem;
-            color: #222;
+            color: #4a4e69;
             margin: 0.7rem 0;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         .photo-card .tags {
             font-size: 0.9rem;
-            color: #666;
+            color: #6b7280;
             margin-bottom: 0.7rem;
         }
         .photo-card .edit-tags {
@@ -205,28 +179,27 @@
         .photo-card .edit-tags input {
             width: 60%;
             padding: 0.4rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            border: 1px solid #e0e6f0;
+            border-radius: 5px;
             font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: #333;
+            background: #fff;
+            color: #4a4e69;
         }
         .photo-card .edit-tags button {
             padding: 0.4rem 0.9rem;
-            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            background: #4CAF50;
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 0.9rem;
-            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.2);
+            transition: transform 0.2s ease;
         }
         .photo-card .edit-tags button:hover {
-            background: linear-gradient(135deg, #388E3C, #2E7D32);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            background: #388E3C;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
         .photo-card .actions {
             display: flex;
@@ -235,115 +208,137 @@
         }
         .photo-card button {
             padding: 0.4rem 0.9rem;
-            background: linear-gradient(135deg, #ff4444, #cc0000);
+            background: #ff4444;
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 0.9rem;
-            box-shadow: 0 3px 10px rgba(255, 68, 68, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(255, 68, 68, 0.2);
+            transition: transform 0.2s ease;
         }
         .photo-card button:hover {
-            background: linear-gradient(135deg, #cc0000, #990000);
-            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+            background: #cc0000;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
         }
         .photo-card .edit-btn {
-            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            background: #4CAF50;
         }
         .photo-card .edit-btn:hover {
-            background: linear-gradient(135deg, #388E3C, #2E7D32);
+            background: #388E3C;
         }
         .pagination {
             display: flex;
             justify-content: center;
             gap: 1.5rem;
             margin-top: 2rem;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), inset 0 0 15px rgba(255, 255, 255, 0.2);
         }
         .pagination button {
             padding: 0.6rem 1.5rem;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.9), rgba(0, 91, 181, 0.9));
+            background: #9a7d0a;
             color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-            transition: all 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 6px rgba(154, 125, 10, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .pagination button:hover {
-            background: linear-gradient(135deg, rgba(0, 91, 181, 0.9), rgba(0, 48, 135, 0.9));
-            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
-            transform: translateY(-2px) scale(1.05);
+            background: #8a6d09;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(154, 125, 10, 0.3);
         }
         .pagination button:active {
-            transform: translateY(1px) scale(0.98);
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(154, 125, 10, 0.2);
         }
         .pagination button:disabled {
-            background: rgba(204, 204, 204, 0.5);
+            background: #d3c6a5;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         .pagination span {
             font-size: 1rem;
-            color: #222;
+            color: #4a4e69;
             align-self: center;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         .empty-message {
             text-align: center;
-            color: #666;
+            color: #6b7280;
             padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(74, 78, 105, 0.1);
+            margin-top: 1rem;
         }
         .back-link {
             margin-top: 2rem;
             text-align: center;
         }
         .back-link a {
-            color: #007AFF;
+            color: #9a7d0a;
             text-decoration: none;
             font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             transition: color 0.3s ease;
         }
         .back-link a:hover {
-            color: #005BB5;
+            color: #8a6d09;
             text-decoration: underline;
+        }
+        .loading {
+            text-align: center;
+            padding: 1.5rem;
+            color: #6b7280;
+        }
+        .error {
+            text-align: center;
+            padding: 1.5rem;
+            color: #e63946;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(230, 57, 70, 0.1);
+        }
+        @media (max-width: 768px) {
+            .photo-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            .profile {
+                flex-direction: column;
+                text-align: center;
+            }
+            .profile .avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            .dashboard {
+                padding: 1.5rem;
+            }
+            .pagination {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
         }
     </style>
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
     <header>
-        <div class="branding">
-            PICLOAD
-        </div>
+        <div class="branding">PICLOAD</div>
         <button onclick="netlifyIdentity.logout()">Log Out</button>
     </header>
     <div class="container">
         <div class="dashboard">
             <div class="profile">
-                <div class="avatar">{{ .User.Email.charAt(0).toUpperCase() }}</div>
+                <div class="avatar" id="avatar"></div>
                 <div class="user-info">
-                    <h3>My Profile</h3>
-                    <p>{{ .User.Email }}</p>
+                    <h3 id="userName">My Profile</h3>
+                    <p id="userEmail"></p>
                 </div>
             </div>
             <h2>My Photos</h2>
+            <div class="loading" id="loading">Loading photos...</div>
+            <div class="error" id="error" style="display: none;"></div>
             <div class="photo-grid" id="photoGrid"></div>
             <div class="empty-message" id="emptyMessage" style="display: none;">You haven’t uploaded any photos yet. <a href="upload.html">Upload now</a>!</div>
             <div class="pagination" id="pagination"></div>
@@ -357,6 +352,11 @@
             const photoGrid = document.getElementById('photoGrid');
             const emptyMessage = document.getElementById('emptyMessage');
             const pagination = document.getElementById('pagination');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const avatar = document.getElementById('avatar');
+            const userName = document.getElementById('userName');
+            const userEmail = document.getElementById('userEmail');
             let currentPage = 1;
             const photosPerPage = 6;
             let allPhotos = [];
@@ -366,7 +366,7 @@
                     window.location.href = 'signup.html';
                     return;
                 }
-
+                setupUserProfile(user);
                 fetchUserPhotos(user.id);
             });
 
@@ -374,9 +374,20 @@
                 window.location.href = 'index.html';
             });
 
+            function setupUserProfile(user) {
+                avatar.textContent = user.email.charAt(0).toUpperCase();
+                userName.textContent = 'My Profile';
+                userEmail.textContent = user.email;
+            }
+
             async function fetchUserPhotos(userId) {
+                loading.style.display = 'block';
+                photoGrid.style.display = 'none';
+                emptyMessage.style.display = 'none';
+                error.style.display = 'none';
+
                 try {
-                    const response = await fetch(`/.netlify/functions/get-images?t=${Date.now()}`, {
+                    const response = await fetch(`/.netlify/functions/get-user-photos?userId=${userId}&t=${Date.now()}`, {
                         headers: {
                             'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
                         },
@@ -384,23 +395,25 @@
                     if (!response.ok) throw new Error('Failed to fetch photos');
 
                     const data = await response.json();
-                    allPhotos = data.filter(photo => photo.id.startsWith(`users/${userId}/`));
+                    allPhotos = data;
 
                     if (allPhotos.length === 0) {
                         emptyMessage.style.display = 'block';
                         photoGrid.style.display = 'none';
                         pagination.style.display = 'none';
-                        return;
+                    } else {
+                        emptyMessage.style.display = 'none';
+                        photoGrid.style.display = 'grid';
+                        pagination.style.display = 'flex';
+                        renderPhotos();
+                        setupPagination();
                     }
-
-                    emptyMessage.style.display = 'none';
-                    photoGrid.style.display = 'grid';
-                    pagination.style.display = 'flex';
-                    renderPhotos();
-                    setupPagination();
                 } catch (error) {
                     console.error('Error fetching photos:', error);
-                    photoGrid.innerHTML = '<p>Error loading your photos. Try again later.</p>';
+                    error.textContent = 'Error loading your photos. Try again later.';
+                    error.style.display = 'block';
+                } finally {
+                    loading.style.display = 'none';
                 }
             }
 
@@ -413,9 +426,9 @@
                     <div class="photo-card" data-id="${photo.id}">
                         <img src="${photo.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,c_thumb')}" alt="${photo.title}">
                         <h3>${photo.title}</h3>
-                        <div class="tags">Tags: ${photo.tags.join(', ')}</div>
+                        <div class="tags">Tags: ${photo.tags.join(', ') || 'None'}</div>
                         <div class="edit-tags">
-                            <input type="text" value="${photo.tags.join(', ')}" data-id="${photo.id}">
+                            <input type="text" value="${photo.tags.join(', ') || ''}" data-id="${photo.id}">
                             <button onclick="saveTags('${photo.id}')">Save</button>
                         </div>
                         <div class="actions">
@@ -453,24 +466,22 @@
                 const newTags = input.value.split(',').map(tag => tag.trim()).filter(tag => tag);
 
                 try {
-                    const response = await fetch(`https://api.cloudinary.com/v1_1/dpemqdflm/resources/image/upload`, {
+                    const response = await fetch(`/.netlify/functions/update-photo-tags`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Basic ${btoa(`${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`)}`,
+                            'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
                         },
-                        body: JSON.stringify({
-                            public_id: photoId,
-                            tags: newTags,
-                        }),
+                        body: JSON.stringify({ photoId, tags: newTags }),
                     });
 
                     if (!response.ok) throw new Error('Failed to update tags');
 
                     const photo = allPhotos.find(p => p.id === photoId);
                     photo.tags = newTags;
-                    card.querySelector('.tags').textContent = `Tags: ${newTags.join(', ')}`;
+                    card.querySelector('.tags').textContent = `Tags: ${newTags.join(', ') || 'None'}`;
                     toggleEdit(photoId);
+                    alert('Tags updated successfully!');
                 } catch (error) {
                     alert('Error updating tags: ' + error.message);
                     console.error('Tag update error:', error);
@@ -480,13 +491,13 @@
             async function deletePhoto(photoId) {
                 if (confirm('Are you sure you want to delete this photo?')) {
                     try {
-                        const response = await fetch(`https://api.cloudinary.com/v1_1/dpemqdflm/delete_by_public_id`, {
+                        const response = await fetch(`/.netlify/functions/delete-photo`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Basic ${btoa(`${process.env.CLOUDINARY_API_KEY}:${process.env.CLOUDINARY_API_SECRET}`)}`,
+                                'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
                             },
-                            body: JSON.stringify({ public_id: photoId, invalidate: true }),
+                            body: JSON.stringify({ photoId }),
                         });
 
                         if (!response.ok) throw new Error('Failed to delete photo');
@@ -494,6 +505,7 @@
                         allPhotos = allPhotos.filter(photo => photo.id !== photoId);
                         renderPhotos();
                         setupPagination();
+                        alert('Photo deleted successfully!');
                     } catch (error) {
                         alert('Error deleting photo: ' + error.message);
                         console.error('Delete error:', error);

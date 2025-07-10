@@ -82,8 +82,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             allImages = images;
             filteredImages = [...allImages];
-            renderGallery();
-            renderCategoryFilter();
+            if (allImages.length === 0) {
+                emptyGallery.style.display = 'block';
+                gallery.style.display = 'none';
+                pagination.style.display = 'none';
+                loadingMessage.style.display = 'none';
+            } else {
+                renderGallery();
+                renderCategoryFilter();
+            }
         } catch (error) {
             console.error('Error fetching images:', error);
             errorMessage.textContent = `Error: ${error.message}`;
@@ -104,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        emptyGallery.style.display = 'none';
+        gallery.style.display = 'grid';
         const startIdx = (currentPage - 1) * imagesPerPage;
         const endIdx = startIdx + imagesPerPage;
         const paginatedImages = filteredImages.slice(startIdx, endIdx);
@@ -124,9 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        gallery.style.display = 'grid';
         pagination.style.display = filteredImages.length > imagesPerPage ? 'flex' : 'none';
-
         prevPage.disabled = currentPage === 1;
         nextPage.disabled = endIdx >= filteredImages.length;
         pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(filteredImages.length / imagesPerPage) || 1}`;
@@ -164,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'new-to-old':
                 return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
             case 'old-to-new':
-                return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+                return sorted.sort((a, b) => new Date(a.date) - new Date(a.date));
             case 'most-downloaded':
                 return sorted.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
             case 'shuffled':

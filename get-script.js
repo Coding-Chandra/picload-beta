@@ -6,47 +6,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchBar = document.getElementById('searchBar');
     const sortSelect = document.getElementById('sortSelect');
     const categoryFilter = document.getElementById('categoryFilter');
-    const authLinks = document.getElementById('authLinks');
-    const userButton = document.getElementById('userButton');
-    const dashboardLink = document.getElementById('dashboardLink');
+    const authButton = document.getElementById('authButton');
     const myPhotosToggle = document.getElementById('myPhotosToggle');
     const myPhotosCheckbox = document.getElementById('myPhotosCheckbox');
     const pagination = document.getElementById('pagination');
     const prevPage = document.getElementById('prevPage');
     const nextPage = document.getElementById('nextPage');
     const pageInfo = document.getElementById('pageInfo');
-    const menuItems = document.getElementById('menuItems');
 
     let allImages = [];
+    let filteredImages = [];
     let activeTags = new Set();
     let currentUser = netlifyIdentity.currentUser();
     let currentPage = 1;
     const imagesPerPage = 12;
     const majorTags = ['AI Generated', 'Wallpaper', 'Nature', 'Travel', 'Architecture & Interior', 'Street Peak'];
 
-    // Sync user state with localStorage and update button
+    // Sync user state and update auth button
     function syncUserState(user) {
+        currentUser = user;
         if (user) {
-            localStorage.setItem('netlifyUser', JSON.stringify({ id: user.id, email: user.email }));
-            userButton.textContent = '👤';
-            userButton.onclick = () => {
-                menuItems.classList.toggle('active');
-                if (netlifyIdentity.currentUser()) netlifyIdentity.open();
+            localStorage.setItem('netlifyUser', JSON.stringify({ id: user.id, email: user.email, role: user.app_metadata?.roles?.[0] }));
+            const role = user.app_metadata?.roles?.includes('admin') ? 'Admin' : 'User';
+            authButton.textContent = role;
+            authButton.onclick = () => {
+                window.location.href = 'signup.html';
             };
-            dashboardLink.style.display = 'block';
             myPhotosToggle.style.display = 'flex';
             fetchImages(user.id);
         } else {
             localStorage.removeItem('netlifyUser');
-            userButton.textContent = '👤';
-            userButton.onclick = () => {
-                menuItems.classList.toggle('active');
+            authButton.textContent = 'Login';
+            authButton.onclick = () => {
                 netlifyIdentity.open();
             };
-            dashboardLink.style.display = 'none';
             myPhotosToggle.style.display = 'none';
             fetchImages();
         }
+        updateGallery();
     }
 
     // Hide preloader on load
@@ -84,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             allImages = images;
+            filteredImages = [...allImages];
             renderGallery();
             renderCategoryFilter();
         } catch (error) {
@@ -98,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingMessage.style.display = 'none';
         errorMessage.style.display = 'none';
 
-        if (allImages.length === 0) {
+        if (filteredImages.length === 0 && activeTags.size === 0 && !searchBar.value) {
             emptyGallery.style.display = 'block';
             gallery.style.display = 'none';
             pagination.style.display = 'none';
@@ -107,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const startIdx = (currentPage - 1) * imagesPerPage;
         const endIdx = startIdx + imagesPerPage;
-        const paginatedImages = allImages.slice(startIdx, endIdx);
+        const paginatedImages = filteredImages.slice(startIdx, endIdx);
 
         gallery.innerHTML = paginatedImages.map(image => {
             const displayTitle = formatTitle(image.title);
@@ -126,11 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         gallery.style.display = 'grid';
-        pagination.style.display = 'flex';
+        pagination.style.display = filteredImages.length > imagesPerPage ? 'flex' : 'none';
 
         prevPage.disabled = currentPage === 1;
-        nextPage.disabled = endIdx >= allImages.length;
-        pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(allImages.length / imagesPerPage)}`;
+        nextPage.disabled = endIdx >= filteredImages.length;
+        pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(filteredImages.length / imagesPerPage) || 1}`;
 
         document.querySelectorAll('.photo-card img').forEach(img => {
             img.addEventListener('contextmenu', e => e.preventDefault());
@@ -140,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCategoryFilter() {
         categoryFilter.innerHTML = majorTags.map(tag => `
-            <button class="filter-btn" data-tag="${tag}">${tag}</button>
+            <button class="filter-btn${activeTags.has(tag) ? ' active' : ''}" data-tag="${tag}">${tag}</button>
         `).join('');
 
         document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -155,9 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 currentPage = 1;
                 updateGallery();
-                if (activeTags.size === 0 && !searchBar.value) {
-                    emptyGallery.style.display = 'none';
-                }
             });
         });
     }
@@ -179,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateGallery() {
-        let filteredImages = [...allImages];
+        filteredImages = [...allImages];
         const searchTerm = searchBar.value.toLowerCase().trim();
         if (searchTerm) {
             filteredImages = filteredImages.filter(image =>
@@ -191,13 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activeTags.size > 0) {
             filteredImages = filteredImages.filter(image =>
-                [...activeTags].every(tag => image.tags.includes(tag))
+                [...activeTags].every(tag => (image.tags || []).includes(tag))
             );
         }
 
         const sortBy = sortSelect.value;
         filteredImages = sortImages(filteredImages, sortBy);
-        allImages = filteredImages;
         currentPage = 1;
         renderGallery();
     }
@@ -222,14 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const storedUser = localStorage.getItem('netlifyUser');
         if (storedUser) {
             const userData = JSON.parse(storedUser);
-            currentUser = { id: userData.id, email: userData.email };
+            currentUser = { id: userData.id, email: userData.email, app_metadata: { roles: [userData.role] } };
             syncUserState(currentUser);
         } else {
             syncUserState(null);
         }
     }
 
-    // Pagination and Menu Handling
+    // Pagination and Event Listeners
     prevPage.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
@@ -238,21 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     nextPage.addEventListener('click', () => {
-        const totalPages = Math.ceil(allImages.length / imagesPerPage);
+        const totalPages = Math.ceil(filteredImages.length / imagesPerPage);
         if (currentPage < totalPages) {
             currentPage++;
             renderGallery();
         }
     });
 
-    userButton.addEventListener('click', () => {
-        menuItems.classList.toggle('active');
-        if (!netlifyIdentity.currentUser()) {
-            netlifyIdentity.open();
-        }
-    });
-
-    // Event Listeners
     searchBar.addEventListener('input', updateGallery);
     sortSelect.addEventListener('change', updateGallery);
     myPhotosCheckbox.addEventListener('change', () => {

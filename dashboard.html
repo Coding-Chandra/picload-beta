@@ -3,516 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picload - My Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rufina:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Rufina', serif;
-            background: linear-gradient(135deg, #f0f4f8 0%, #d9e4f5 100%);
-            background-attachment: fixed;
-            color: #4a4e69;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            overflow-x: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 70px;
-        }
-        header {
-            background: rgba(26, 26, 46, 0.7);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            color: #e0e0e0;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-        }
-        header .branding {
-            font-size: x-large;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        header button {
-            padding: 0.7rem 1.5rem;
-            background: #9a7d0a;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(154, 125, 10, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        header button:hover {
-            background: #8a6d09;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(154, 125, 10, 0.3);
-        }
-        header button:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 3px rgba(154, 125, 10, 0.2);
-        }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            width: 100%;
-        }
-        .dashboard {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(74, 78, 105, 0.1);
-            padding: 2rem;
-            animation: slideUp 0.6s ease-out;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .profile {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(74, 78, 105, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .profile:hover {
-            transform: translateY(-5px);
-        }
-        .profile .avatar {
-            width: 50px;
-            height: 50px;
-            background: #9a7d0a;
-            border-radius: 50%;
-            margin-right: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .profile .avatar:hover {
-            transform: scale(1.1);
-        }
-        .profile .user-info h3 {
-            font-size: 1.3rem;
-            color: #4a4e69;
-            margin: 0;
-        }
-        .profile .user-info p {
-            font-size: 0.95rem;
-            color: #6b7280;
-            margin: 0.3rem 0;
-        }
-        h2 {
-            font-size: 1.7rem;
-            color: #4a4e69;
-            margin-bottom: 2rem;
-            text-align: center;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: opacity 0.3s ease;
-        }
-        .photo-card {
-            background: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            text-align: center;
-            padding: 1rem;
-            box-shadow: 0 2px 6px rgba(74, 78, 105, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .photo-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(74, 78, 105, 0.2);
-        }
-        .photo-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 5px;
-            transition: transform 0.3s ease;
-        }
-        .photo-card:hover img {
-            transform: scale(1.05);
-        }
-        .photo-card h3 {
-            font-size: 1.1rem;
-            color: #4a4e69;
-            margin: 0.7rem 0;
-        }
-        .photo-card .tags {
-            font-size: 0.9rem;
-            color: #6b7280;
-            margin-bottom: 0.7rem;
-        }
-        .photo-card .edit-tags {
-            display: none;
-            margin-top: 0.7rem;
-        }
-        .photo-card.editing .edit-tags {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            align-items: center;
-        }
-        .photo-card .edit-tags input {
-            width: 60%;
-            padding: 0.4rem;
-            border: 1px solid #e0e6f0;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            background: #fff;
-            color: #4a4e69;
-        }
-        .photo-card .edit-tags button {
-            padding: 0.4rem 0.9rem;
-            background: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.2);
-            transition: transform 0.2s ease;
-        }
-        .photo-card .edit-tags button:hover {
-            background: #388E3C;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-        }
-        .photo-card .actions {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 0.7rem;
-        }
-        .photo-card button {
-            padding: 0.4rem 0.9rem;
-            background: #ff4444;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 6px rgba(255, 68, 68, 0.2);
-            transition: transform 0.2s ease;
-        }
-        .photo-card button:hover {
-            background: #cc0000;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
-        }
-        .photo-card .edit-btn {
-            background: #4CAF50;
-        }
-        .photo-card .edit-btn:hover {
-            background: #388E3C;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        .pagination button {
-            padding: 0.6rem 1.5rem;
-            background: #9a7d0a;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(154, 125, 10, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .pagination button:hover {
-            background: #8a6d09;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(154, 125, 10, 0.3);
-        }
-        .pagination button:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 3px rgba(154, 125, 10, 0.2);
-        }
-        .pagination button:disabled {
-            background: #d3c6a5;
-            cursor: not-allowed;
-        }
-        .pagination span {
-            font-size: 1rem;
-            color: #4a4e69;
-            align-self: center;
-        }
-        .empty-message {
-            text-align: center;
-            color: #6b7280;
-            padding: 2rem;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(74, 78, 105, 0.1);
-            margin-top: 1rem;
-        }
-        .back-link {
-            margin-top: 2rem;
-            text-align: center;
-        }
-        .back-link a {
-            color: #9a7d0a;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        .back-link a:hover {
-            color: #8a6d09;
-            text-decoration: underline;
-        }
-        .loading {
-            text-align: center;
-            padding: 1.5rem;
-            color: #6b7280;
-        }
-        .error {
-            text-align: center;
-            padding: 1.5rem;
-            color: #e63946;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(230, 57, 70, 0.1);
-        }
-        @media (max-width: 768px) {
-            .photo-grid {
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            }
-            .profile {
-                flex-direction: column;
-                text-align: center;
-            }
-            .profile .avatar {
-                margin-right: 0;
-                margin-bottom: 1rem;
-            }
-            .dashboard {
-                padding: 1.5rem;
-            }
-            .pagination {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-        }
-    </style>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <title>Dashboard - PICLOAD</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="dbstyle.css">
 </head>
-<body>
-    <header>
-        <div class="branding">PICLOAD</div>
-        <button onclick="netlifyIdentity.logout()">Log Out</button>
-    </header>
-    <div class="container">
-        <div class="dashboard">
-            <div class="profile">
-                <div class="avatar" id="avatar"></div>
-                <div class="user-info">
-                    <h3 id="userName">My Profile</h3>
-                    <p id="userEmail"></p>
-                </div>
-            </div>
-            <h2>My Photos</h2>
-            <div class="loading" id="loading">Loading photos...</div>
-            <div class="error" id="error" style="display: none;"></div>
-            <div class="photo-grid" id="photoGrid"></div>
-            <div class="empty-message" id="emptyMessage" style="display: none;">You haven’t uploaded any photos yet. <a href="upload.html">Upload now</a>!</div>
-            <div class="pagination" id="pagination"></div>
+<body class="font-sans" style="background: linear-gradient(135deg, #e0e7ff 0%, #b3c8d8 100%);">
+    <nav class="text-white p-4 flex justify-between items-center" style="background: linear-gradient(135deg, #a855f7e6, #facc15e6);">
+        <div class="text-2xl font-bold">PICLOAD</div>
+        <div>
+            <span id="userEmail" class="mr-4"></span>
+            <button id="logoutBtn" class="px-4 py-2 rounded text-white" style="background: linear-gradient(135deg, #007AFF, #005BB5);">Log Out</button>
         </div>
-        <div class="back-link">
-            <a href="index.html">Back to Gallery</a>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Profile Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">My Profile</h2>
+                <div class="flex items-center mb-4">
+                    <img id="profilePhoto" src="/assets/default-profile.png" alt="Profile Photo" class="w-16 h-16 rounded-full mr-4">
+                    <div>
+                        <p id="userName" class="text-lg font-medium">Loading...</p>
+                        <p id="userEmailDisplay" class="text-gray-600"></p>
+                    </div>
+                </div>
+                <form id="profileForm" class="space-y-4">
+                    <div>
+                        <label for="nameInput" class="block text-sm font-medium text-gray-700">Name</label>
+                        <input type="text" id="nameInput" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label for="profilePhotoInput" class="block text-sm font-medium text-gray-700">Profile Photo</label>
+                        <input type="file" id="profilePhotoInput" accept="image/*" class="w-full p-2 border rounded">
+                    </div>
+                    <button type="submit" class="text-white px-4 py-2 rounded" style="background: linear-gradient(135deg, #007AFF, #005BB5);">Save Changes</button>
+                </form>
+            </div>
+
+            <!-- Photos Section -->
+            <div class="col-span-2 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">My Photos</h2>
+                <div id="photoList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Photos will be dynamically loaded here -->
+                </div>
+                <p id="noPhotosMessage" class="text-gray-600 mt-4">You haven’t uploaded any photos yet. Upload now!</p>
+                <a href="/gallery.html" class="mt-4 inline-block text-blue-500 hover:underline">Back to Gallery</a>
+            </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const photoGrid = document.getElementById('photoGrid');
-            const emptyMessage = document.getElementById('emptyMessage');
-            const pagination = document.getElementById('pagination');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            const avatar = document.getElementById('avatar');
-            const userName = document.getElementById('userName');
-            const userEmail = document.getElementById('userEmail');
-            let currentPage = 1;
-            const photosPerPage = 6;
-            let allPhotos = [];
 
-            netlifyIdentity.on('init', user => {
-                if (!user) {
-                    window.location.href = 'signup.html';
-                    return;
-                }
-                setupUserProfile(user);
-                fetchUserPhotos(user.id);
-            });
-
-            netlifyIdentity.on('logout', () => {
-                window.location.href = 'index.html';
-            });
-
-            function setupUserProfile(user) {
-                avatar.textContent = user.email.charAt(0).toUpperCase();
-                userName.textContent = 'My Profile';
-                userEmail.textContent = user.email;
-            }
-
-            async function fetchUserPhotos(userId) {
-                loading.style.display = 'block';
-                photoGrid.style.display = 'none';
-                emptyMessage.style.display = 'none';
-                error.style.display = 'none';
-
-                try {
-                    const response = await fetch(`/.netlify/functions/get-user-photos?userId=${userId}&t=${Date.now()}`, {
-                        headers: {
-                            'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
-                        },
-                    });
-                    if (!response.ok) throw new Error('Failed to fetch photos');
-
-                    const data = await response.json();
-                    allPhotos = data;
-
-                    if (allPhotos.length === 0) {
-                        emptyMessage.style.display = 'block';
-                        photoGrid.style.display = 'none';
-                        pagination.style.display = 'none';
-                    } else {
-                        emptyMessage.style.display = 'none';
-                        photoGrid.style.display = 'grid';
-                        pagination.style.display = 'flex';
-                        renderPhotos();
-                        setupPagination();
-                    }
-                } catch (error) {
-                    console.error('Error fetching photos:', error);
-                    error.textContent = 'Error loading your photos. Try again later.';
-                    error.style.display = 'block';
-                } finally {
-                    loading.style.display = 'none';
-                }
-            }
-
-            function renderPhotos() {
-                const start = (currentPage - 1) * photosPerPage;
-                const end = start + photosPerPage;
-                const paginatedPhotos = allPhotos.slice(start, end);
-
-                photoGrid.innerHTML = paginatedPhotos.map(photo => `
-                    <div class="photo-card" data-id="${photo.id}">
-                        <img src="${photo.url.replace(/upload\/v\d+/, 'upload/w_200,h_150,c_thumb')}" alt="${photo.title}">
-                        <h3>${photo.title}</h3>
-                        <div class="tags">Tags: ${photo.tags.join(', ') || 'None'}</div>
-                        <div class="edit-tags">
-                            <input type="text" value="${photo.tags.join(', ') || ''}" data-id="${photo.id}">
-                            <button onclick="saveTags('${photo.id}')">Save</button>
-                        </div>
-                        <div class="actions">
-                            <button class="edit-btn" onclick="toggleEdit('${photo.id}')">Edit Tags</button>
-                            <button onclick="deletePhoto('${photo.id}')">Delete</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            function setupPagination() {
-                const totalPages = Math.ceil(allPhotos.length / photosPerPage);
-                pagination.innerHTML = `
-                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
-                    <span>Page ${currentPage} of ${totalPages}</span>
-                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
-                `;
-            }
-
-            function changePage(page) {
-                if (page < 1 || page > Math.ceil(allPhotos.length / photosPerPage)) return;
-                currentPage = page;
-                renderPhotos();
-                setupPagination();
-            }
-
-            function toggleEdit(photoId) {
-                const card = document.querySelector(`.photo-card[data-id="${photoId}"]`);
-                card.classList.toggle('editing');
-            }
-
-            async function saveTags(photoId) {
-                const card = document.querySelector(`.photo-card[data-id="${photoId}"]`);
-                const input = card.querySelector('input');
-                const newTags = input.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-
-                try {
-                    const response = await fetch(`/.netlify/functions/update-photo-tags`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
-                        },
-                        body: JSON.stringify({ photoId, tags: newTags }),
-                    });
-
-                    if (!response.ok) throw new Error('Failed to update tags');
-
-                    const photo = allPhotos.find(p => p.id === photoId);
-                    photo.tags = newTags;
-                    card.querySelector('.tags').textContent = `Tags: ${newTags.join(', ') || 'None'}`;
-                    toggleEdit(photoId);
-                    alert('Tags updated successfully!');
-                } catch (error) {
-                    alert('Error updating tags: ' + error.message);
-                    console.error('Tag update error:', error);
-                }
-            }
-
-            async function deletePhoto(photoId) {
-                if (confirm('Are you sure you want to delete this photo?')) {
-                    try {
-                        const response = await fetch(`/.netlify/functions/delete-photo`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${netlifyIdentity.currentUser().token.access_token}`,
-                            },
-                            body: JSON.stringify({ photoId }),
-                        });
-
-                        if (!response.ok) throw new Error('Failed to delete photo');
-
-                        allPhotos = allPhotos.filter(photo => photo.id !== photoId);
-                        renderPhotos();
-                        setupPagination();
-                        alert('Photo deleted successfully!');
-                    } catch (error) {
-                        alert('Error deleting photo: ' + error.message);
-                        console.error('Delete error:', error);
-                    }
-                }
-            }
-        });
-    </script>
+    <script src="dbscript.js"></script>
 </body>
 </html>

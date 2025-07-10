@@ -54,7 +54,7 @@ body {
 
 /* Header */
 header {
-    background: rgba(26, 26, 46, 0.7);
+    background: linear-gradient(135deg, #a855f7e6, #facc15e6);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     color: #e0e0e0;

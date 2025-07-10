@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const role = user.app_metadata?.roles?.includes('admin') ? 'Admin' : 'User';
             authButton.textContent = role;
             authButton.onclick = () => {
-                window.location.href = 'signup.html';
+                window.location.href = 'dashboard.html';
             };
             myPhotosToggle.style.display = 'flex';
             fetchImages(user.id);
@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.textContent = `Error: ${error.message}`;
             errorMessage.style.display = 'block';
             loadingMessage.style.display = 'none';
+            emptyGallery.style.display = 'none';
         }
     }
 
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingMessage.style.display = 'none';
         errorMessage.style.display = 'none';
 
-        if (filteredImages.length === 0 && activeTags.size === 0 && !searchBar.value) {
+        if (filteredImages.length === 0) {
             emptyGallery.style.display = 'block';
             gallery.style.display = 'none';
             pagination.style.display = 'none';

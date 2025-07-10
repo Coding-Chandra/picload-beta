@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - PICLOAD</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/dbstyle.css">
+    <link rel="stylesheet" href="dbstyle.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body class="font-sans" style="background: linear-gradient(135deg, #e0e7ff 0%, #b3c8d8 100%);">
     <nav class="text-white p-4 flex justify-between items-center" style="background: linear-gradient(135deg, #a855f7e6, #facc15e6);">
         <div class="text-2xl font-bold">PICLOAD</div>
         <div>
-            <span id="userEmail" class="mr-4"></span>
-            <button id="logoutBtn" class="px-4 py-2 rounded text-white" style="background: linear-gradient(135deg, #007AFF, #005BB5);">Log Out</button>
+            <span id="userButton" class="mr-4">👤</span>
+            <button id="logoutBtn" class="px-4 py-2 rounded text-white" style="background: linear-gradient(135deg, #007AFF, #005BB5); display: none;">Log Out</button>
         </div>
     </nav>
 
@@ -43,16 +44,28 @@
 
             <!-- Photos Section -->
             <div class="col-span-2 bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4">My Photos</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">My Photos</h2>
+                    <button id="uploadBtn" class="text-white px-4 py-2 rounded" style="background: linear-gradient(135deg, #007AFF, #005BB5);">Upload New Photo</button>
+                </div>
                 <div id="photoList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Photos will be dynamically loaded here -->
                 </div>
                 <p id="noPhotosMessage" class="text-gray-600 mt-4">You haven’t uploaded any photos yet. Upload now!</p>
-                <a href="/gallery.html" class="mt-4 inline-block text-blue-500 hover:underline">Back to Gallery</a>
+                <a id="dashboardLink" href="/gallery.html" class="mt-4 inline-block text-blue-500 hover:underline" style="display: none;">Back to Gallery</a>
             </div>
         </div>
     </div>
 
-    <script src="assets/dbscript.js"></script>
+    <!-- Admin Popup -->
+    <div id="adminPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-4 rounded-lg w-full max-w-md relative">
+            <iframe id="adminFrame" src="admin.html" class="w-full h-96"></iframe>
+            <button id="closePopupBtn" class="absolute top-2 right-2 text-white px-2 py-1 rounded" style="background: linear-gradient(135deg, #007AFF, #005BB5);">Close</button>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="dbscript.js"></script>
 </body>
 </html>

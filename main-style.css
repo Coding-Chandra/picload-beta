@@ -182,26 +182,27 @@ header .branding {
 /* Tag Cloud */
 .tag-cloud {
     background: rgba(255, 255, 255, 0.9);
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     z-index: 9;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 0.75rem;
     box-shadow: 0 2px 8px rgba(74, 78, 105, 0.1);
     margin-top: 70px;
     will-change: transform;
 }
 
 .tag-btn {
-    padding: 0.4rem 0.8rem;
+    padding: 0.5rem 1rem;
     background: #f8f9fa;
     border: 1px solid #e0e6f0;
     border-radius: 15px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 500;
     color: #4a4e69;
     cursor: pointer;
     transition: background 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
 }
 
 .tag-btn:hover {
@@ -220,7 +221,8 @@ header .branding {
 @media (max-width: 768px) {
     .tag-cloud {
         margin-top: 0.5rem;
-        padding: 0.5rem;
+        padding: 0.5rem 1rem;
+        gap: 0.5rem;
     }
 
     .menu-toggle {

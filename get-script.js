@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyGallery = document.getElementById('emptyGallery');
     const searchBar = document.getElementById('searchBar');
     const sortSelect = document.getElementById('sortSelect');
-    const tagCloud = document.getElementById('tagCloud');
+    const categoryFilter = document.getElementById('categoryFilter');
     const authLinks = document.getElementById('authLinks');
     const userButton = document.getElementById('userButton');
     const dashboardLink = document.getElementById('dashboardLink');
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userButton.textContent = '👤';
             userButton.onclick = () => {
                 menuItems.classList.toggle('active');
-                if (netlifyIdentity.currentUser()) netlifyIdentity.open(); // Open profile or logout
+                if (netlifyIdentity.currentUser()) netlifyIdentity.open();
             };
             dashboardLink.style.display = 'block';
             myPhotosToggle.style.display = 'flex';
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userButton.textContent = '👤';
             userButton.onclick = () => {
                 menuItems.classList.toggle('active');
-                netlifyIdentity.open(); // Open login/signup
+                netlifyIdentity.open();
             };
             dashboardLink.style.display = 'none';
             myPhotosToggle.style.display = 'none';
@@ -76,11 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
 
             const data = await response.json();
-            console.log('Fetched data:', data);
+            console.log('Raw fetched data:', JSON.stringify(data, null, 2));
 
-            allImages = Array.isArray(data) ? data : (data.images || []);
+            let images = Array.isArray(data) ? data : (data.images || []);
+            if (!Array.isArray(images)) {
+                throw new Error(`Expected data.images to be an array, got: ${JSON.stringify(data.images)}`);
+            }
+
+            allImages = images;
             renderGallery();
-            renderTagCloud(allImages);
+            renderCategoryFilter();
         } catch (error) {
             console.error('Error fetching images:', error);
             errorMessage.textContent = `Error: ${error.message}`;
@@ -100,45 +105,47 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        emptyGallery.style.display = 'none';
         const startIdx = (currentPage - 1) * imagesPerPage;
         const endIdx = startIdx + imagesPerPage;
         const paginatedImages = allImages.slice(startIdx, endIdx);
 
         gallery.innerHTML = paginatedImages.map(image => {
             const displayTitle = formatTitle(image.title);
-            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_70,c_thumb'); // 70% quality for thumbnails
+            const thumbnailUrl = image.url.replace(/upload\/v\d+/, 'upload/w_600,h_500,q_90,c_thumb');
             return `
-                <div class="photo-card">
+                <div class="photo-card" onclick="window.location.href='photo.html?id=${encodeURIComponent(image.id)}'">
                     <div class="image-wrapper">
                         <img src="${thumbnailUrl}" alt="${displayTitle}" loading="lazy">
                     </div>
                     <div class="photo-info">
                         <h3>${displayTitle}</h3>
+                        <input type="hidden" class="original-title" value="${displayTitle}">
                     </div>
                 </div>
             `;
         }).join('');
 
         gallery.style.display = 'grid';
-        gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-        gallery.style.gap = '1.5rem';
-        gallery.style.padding = '1rem';
         pagination.style.display = 'flex';
 
         prevPage.disabled = currentPage === 1;
         nextPage.disabled = endIdx >= allImages.length;
         pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(allImages.length / imagesPerPage)}`;
+
+        document.querySelectorAll('.photo-card img').forEach(img => {
+            img.addEventListener('contextmenu', e => e.preventDefault());
+            img.addEventListener('dragstart', e => e.preventDefault());
+        });
     }
 
-    function renderTagCloud(images) {
-        tagCloud.innerHTML = majorTags.map(tag => `
-            <button class="tag-btn" data-tag="${tag}">${tag}</button>
+    function renderCategoryFilter() {
+        categoryFilter.innerHTML = majorTags.map(tag => `
+            <button class="filter-btn" data-tag="${tag}">${tag}</button>
         `).join('');
 
-        document.querySelectorAll('.tag-btn').forEach(btn => {
-            const tag = btn.dataset.tag;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                const tag = btn.dataset.tag;
                 if (activeTags.has(tag)) {
                     activeTags.delete(tag);
                     btn.classList.remove('active');
@@ -146,8 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeTags.add(tag);
                     btn.classList.add('active');
                 }
-                currentPage = 1; // Reset to first page on tag change
+                currentPage = 1;
                 updateGallery();
+                if (activeTags.size === 0 && !searchBar.value) {
+                    emptyGallery.style.display = 'none';
+                }
             });
         });
     }
@@ -181,14 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activeTags.size > 0) {
             filteredImages = filteredImages.filter(image =>
-                (image.tags || []).some(tag => activeTags.has(tag))
+                [...activeTags].every(tag => image.tags.includes(tag))
             );
         }
 
         const sortBy = sortSelect.value;
         filteredImages = sortImages(filteredImages, sortBy);
-        allImages = filteredImages; // Update allImages for pagination
-        currentPage = 1; // Reset to first page on filter/sort
+        allImages = filteredImages;
+        currentPage = 1;
         renderGallery();
     }
 
@@ -238,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userButton.addEventListener('click', () => {
         menuItems.classList.toggle('active');
         if (!netlifyIdentity.currentUser()) {
-            netlifyIdentity.open(); // Open login/signup if not logged in
+            netlifyIdentity.open();
         }
     });
 

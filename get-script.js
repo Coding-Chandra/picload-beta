@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = netlifyIdentity.currentUser();
     let currentPage = 1;
     const imagesPerPage = 12;
+    const majorTags = ['AI Generated', 'Wallpaper', 'Nature', 'Travel', 'Architecture & Interior', 'Street Peak'];
 
     // Sync user state with localStorage
     function syncUserState(user) {
@@ -116,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gallery.style.display = 'grid';
         gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-        gallery.style.gap = '1rem';
-        gallery.style.padding = '0.5rem';
+        gallery.style.gap = '1.5rem';
+        gallery.style.padding = '1rem';
         pagination.style.display = 'flex';
 
         prevPage.disabled = currentPage === 1;
@@ -126,14 +127,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderTagCloud(images) {
-        const allTags = [...new Set(images.flatMap(img => img.tags || []))];
-        tagCloud.innerHTML = allTags.map(tag => `
+        tagCloud.innerHTML = majorTags.map(tag => `
             <button class="tag-btn" data-tag="${tag}">${tag}</button>
         `).join('');
 
         document.querySelectorAll('.tag-btn').forEach(btn => {
+            const tag = btn.dataset.tag;
             btn.addEventListener('click', () => {
-                const tag = btn.dataset.tag;
                 if (activeTags.has(tag)) {
                     activeTags.delete(tag);
                     btn.classList.remove('active');

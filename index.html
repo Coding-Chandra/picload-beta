@@ -3,35 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picload - Photo Gallery</title>
+    <title>PICLOAD</title>
     <link rel="stylesheet" href="main-style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rufina:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="logo.png">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
-    <!-- Pre-loader -->
     <div class="preloader" id="preloader">
-        <img src="logo.png" alt="Picload Logo" class="preloader-logo">
+        <img src="logo.png" alt="Logo" class="preloader-logo">
     </div>
 
     <header>
         <div class="branding">PICLOAD</div>
-        <div class="search-container">
-            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 Search by tags or keywords...">
-        </div>
+        <input type="text" id="searchBar" class="search-bar" placeholder="Search photos...">
         <div class="auth-links" id="authLinks">
-            <nav class="menu" id="menu">
-                <button class="menu-toggle" id="userButton" title="User">👤</button>
+            <div class="menu">
+                <button id="userButton" class="menu-toggle">👤</button>
                 <div class="menu-items" id="menuItems">
-                    <a href="dashboard.html" class="menu-item" id="dashboardLink" style="display: none;"><button>Dashboard</button></a>
-                    <a href="admin.html" class="menu-item"><button>Admin</button></a>
+                    <div class="menu-item"><button id="dashboardLink">Dashboard</button></div>
+                    <div class="menu-item"><button id="adminLink">Admin</button></div>
                 </div>
-            </nav>
+            </div>
         </div>
     </header>
 
-    <div class="tag-cloud" id="tagCloud"></div>
+    <div class="category-filter" id="categoryFilter"></div>
 
     <div class="container">
         <div class="controls">
@@ -39,24 +34,26 @@
                 <select id="sortSelect">
                     <option value="new-to-old">New to Old</option>
                     <option value="old-to-new">Old to New</option>
-                    <option value="most-downloaded">Most Popular</option>
+                    <option value="most-downloaded">Most Downloaded</option>
                     <option value="shuffled">Shuffled</option>
                 </select>
             </div>
-            <div class="my-photos-toggle" id="myPhotosToggle" style="display: none;">
-                <input type="checkbox" id="myPhotosCheckbox">
+            <div class="my-photos-toggle" id="myPhotosToggle">
                 <label for="myPhotosCheckbox">My Photos</label>
+                <input type="checkbox" id="myPhotosCheckbox">
             </div>
         </div>
+
         <div class="loading" id="loadingMessage">Loading photos...</div>
-        <div class="error-message" id="errorMessage" style="display: none;"></div>
-        <div class="empty-gallery" id="emptyGallery" style="display: none;">
+        <div class="error-message" id="errorMessage"></div>
+        <div class="gallery" id="photoGallery"></div>
+        <div class="empty-gallery" id="emptyGallery">
         <img src="./assets/exclaim.png" style="height: 200px; width: 200px;">
             <h2>No Photos Yet</h2>
             <p>Add some images in the admin area to get started.</p>
         </div>
-        <div class="gallery" id="photoGallery"></div>
-        <div class="pagination" id="pagination" style="display: none;">
+
+        <div class="pagination" id="pagination">
             <button id="prevPage">←</button>
             <span id="pageInfo"></span>
             <button id="nextPage">→</button>

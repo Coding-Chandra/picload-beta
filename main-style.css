@@ -54,7 +54,7 @@ header {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     color: #fff;
-    padding: 1rem 2rem;
+    padding: 0.75rem 1rem;
     z-index: 10;
     display: flex;
     justify-content: space-between;
@@ -76,7 +76,12 @@ header::before {
     z-index: -1;
 }
 
-header .branding {
+.branding {
+    display: flex;
+    align-items: center;
+}
+
+.branding-text {
     font-size: x-large;
     font-weight: 700;
     color: #fff;
@@ -84,13 +89,19 @@ header .branding {
     opacity: 0.8;
 }
 
+.branding-logo {
+    display: none;
+    width: 32px;
+    height: 32px;
+}
+
 .search-bar {
     flex-grow: 1;
-    margin: 0 1rem;
-    padding: 0.75rem 1rem;
+    margin: 0 0.5rem;
+    padding: 0.5rem 0.75rem;
     border: none;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #222;
     background: rgba(255, 255, 255, 0.949);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -104,16 +115,15 @@ header .branding {
 
 .search-bar:focus {
     outline: none;
-    font-size: 1.05rem;
     box-shadow: 0 0 0 2px rgba(154, 125, 10, 0.2);
 }
 
 .auth-links .admin-link {
     color: #fff;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    padding: 0.6rem 1.2rem;
+    padding: 0.5rem 1rem;
     background: #9a7d0a;
     box-shadow: 0 2px 6px rgba(154, 125, 10, 0.2);
     border: none;
@@ -137,7 +147,7 @@ header .branding {
     position: sticky;
     top: 0;
     background: rgba(255, 255, 255, 0.95);
-    padding: 0.5rem 2rem;
+    padding: 0.5rem 1rem;
     z-index: 9;
     display: flex;
     gap: 0.75rem;
@@ -376,42 +386,50 @@ header .branding {
 .empty-gallery h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
 .empty-gallery p { color: #6b7280; }
 
-/* Responsive Design */
+/* Responsive Header Adjustments */
 @media (max-width: 768px) {
-    .category-filter {
-        padding: 0.5rem 1rem;
+    header {
+        flex-wrap: nowrap;
         gap: 0.5rem;
     }
 
-    header {
-        flex-direction: column;
-        padding: 0.5rem;
+    .branding-text {
+        font-size: 1.2rem;
     }
 
     .search-bar {
-        margin: 0.3rem 0;
-        width: 100%;
+        flex-grow: 1;
+        max-width: 50%;
     }
 
-    .controls {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .pagination {
-        flex-direction: column;
-        gap: 0.5rem;
+    .auth-links .admin-link {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
     }
 }
 
 @media (max-width: 500px) {
+    .branding-text {
+        display: none;
+    }
+
+    .branding-logo {
+        display: block;
+    }
+
     .search-bar {
-        max-width: 150px;
+        max-width: 40%;
+        font-size: 0.8rem;
+    }
+
+    .auth-links .admin-link {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
     }
 }
 
 @media (max-width: 350px) {
     .search-bar {
-        max-width: 50px;
+        max-width: 30%;
     }
 }

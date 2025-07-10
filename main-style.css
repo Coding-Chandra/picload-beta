@@ -399,7 +399,6 @@ header::before {
 
     .search-bar {
         flex-grow: 1;
-        max-width: 50%;
     }
 
     .auth-links .admin-link {
@@ -418,18 +417,11 @@ header::before {
     }
 
     .search-bar {
-        max-width: 40%;
         font-size: 0.8rem;
     }
 
     .auth-links .admin-link {
         font-size: 0.7rem;
         padding: 0.3rem 0.6rem;
-    }
-}
-
-@media (max-width: 350px) {
-    .search-bar {
-        max-width: 30%;
     }
 }

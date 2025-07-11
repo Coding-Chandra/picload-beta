@@ -315,3 +315,38 @@ header .admin-link a:active,
 .error-message { color: #d32f2f; font-weight: 500; }
 .empty-gallery h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
 .empty-gallery p { color: #777; }
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+    color: #4a4e69;
+}
+
+.pagination button {
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, #007AFF, #005BB5);;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.pagination button:disabled {
+    background: #d3c6a5;
+    cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #8a6d09;
+    transform: translateY(-2px);
+}
+
+.pagination button:active:not(:disabled) {
+    transform: translateY(1px);
+}

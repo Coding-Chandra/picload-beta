@@ -36,3 +36,7 @@ input[type="password"]:focus {
     outline: none;
     border-color: #007AFF;
 }
+
+#adminPopup iframe {
+    border: none;
+}

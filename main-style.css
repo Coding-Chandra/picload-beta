@@ -95,6 +95,13 @@ header .search-bar {
     transition: box-shadow 0.3s ease;
     mix-blend-mode: screen;
 }
+
+.branding-logo {
+    display: none;
+    width: 32px;
+    height: 32px;
+}
+
 @media (max-width: 500px) {
     header .search-bar {
         max-width: 150px;

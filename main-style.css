@@ -105,6 +105,9 @@ header .search-bar {
     .branding-logo {
         display: block;
     }
+    .branding-text{
+        display: none;
+    }
 }
 @media (max-width: 500px) {
     header .search-bar {

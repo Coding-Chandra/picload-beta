@@ -172,6 +172,13 @@ header .admin-link a:active,
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
 }
+
+@media (max-width: 700px) {
+    .category-filter{
+        justify-content: left;
+    }
+}
+
 .category-filter::-webkit-scrollbar {
     display: none;
 }

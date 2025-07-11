@@ -173,10 +173,6 @@ header .admin-link a:active,
   box-shadow:0 0 0 2px rgba(255,255,255,.6),0 16px 32px rgba(0,0,0,.12);
   backdrop-filter:url(#frosted);-webkit-backdrop-filter:url(#frosted);
 }
-.category-filter::before,
-.category-filter::after{
-  content:"";position:absolute;width:40%;height:10px;background:#fff;border-radius:10px;
-}
 
 .category-filter::after{transform:rotate(90deg)}
 

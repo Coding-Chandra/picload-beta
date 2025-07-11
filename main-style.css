@@ -105,7 +105,7 @@ header .search-bar {
     .branding-logo {
         display: block;
     }
-
+}
 @media (max-width: 500px) {
     header .search-bar {
         max-width: 150px;

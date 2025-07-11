@@ -1,6 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Simulated authentication state (replace with actual auth system)
-    let currentUser = JSON.parse(localStorage.getItem('user')) || null;
+document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for auth initialization
+    const currentUser = await initAuth();
 
     // Check login status
     if (!currentUser) {
@@ -9,16 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update UI with user data
-    document.getElementById('userEmail').textContent = currentUser.email;
     document.getElementById('userEmailDisplay').textContent = currentUser.email;
-    document.getElementById('userName').textContent = currentUser.name || 'No name set';
-    document.getElementById('profilePhoto').src = currentUser.profilePhoto || '/assets/default-profile.png';
-
-    // Logout functionality (site-wide)
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem('user');
-        window.location.href = '/signup.html';
-    });
+    document.getElementById('userName').(GraphQL)textContent = currentUser.user_metadata?.full_name || 'No name set';
+    document.getElementById('profilePhoto').src = currentUser.user_metadata?.profilePhoto || '/assets/default-profile.png';
 
     // Profile form submission
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
@@ -28,22 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update name
         if (name) {
-            currentUser.name = name;
+            await netlifyIdentity.currentUser().update({ data: { full_name: name } });
             document.getElementById('userName').textContent = name;
         }
 
         // Update profile photo (simulated upload to admin.html)
         if (profilePhotoInput) {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                currentUser.profilePhoto = event.target.result;
-                document.getElementById('profilePhoto').src = currentUser.profilePhoto;
-                localStorage.setItem('user', JSON.stringify(currentUser));
+            reader.onload = async (event) => {
+                await netlifyIdentity.currentUser().update({ data: { profilePhoto: event.target.result } });
+                document.getElementById('profilePhoto').src = event.target.result;
                 alert('Profile photo updated! (Simulated upload to admin.html)');
             };
             reader.readAsDataURL(profilePhotoInput);
         } else {
-            localStorage.setItem('user', JSON.stringify(currentUser));
             alert('Profile updated!');
         }
     });
@@ -60,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noPhotosMessage.style.display = 'none';
         photos.forEach((photo, index) => {
             const photoCard = document.createElement('div');
-            photoCard.className = 'border p-4 rounded-lg';
+            photoCard.className= 'border p-4 rounded-lg';
             photoCard.innerHTML = `
                 <img src="${photo.url}" alt="${photo.name}" class="w-full h-48 object-cover rounded">
                 <input type="text" value="${photo.name}" class="w-full p-2 border rounded mt-2" data-index="${index}">
@@ -96,23 +87,28 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.reload();
         }
     });
+
+    // Handle upload button to show admin popup
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+        document.getElementById('adminPopup').classList.remove('hidden');
+    });
+
+    // Handle close popup button
+    document.getElementById('closePopupBtn').addEventListener('click', () => {
+        document.getElementById('adminPopup').classList.add('hidden');
+        document.getElementById('adminFrame').src = 'admin.html'; // Reset iframe
+    });
 });
 
-// Simulated signup function (site-wide, in auth.js)
-function signup(email, password) {
-    // Replace with actual authentication logic
-    const user = { email, name: '', profilePhoto: '' };
-    local  Storage.setItem('user', JSON.stringify(user));
-    window.location.href = '/dashboard.html';
-}
-
-// Simulated function for admin photo upload
+// Simulated function for admin photo upload (called from admin.html)
 function uploadPhoto(file, name, tags) {
     const reader = new FileReader();
     reader.onload = (event) => {
         const photos = JSON.parse(localStorage.getItem('photos')) || [];
         photos.push({ url: event.target.result, name, tags: tags.split(',').map(tag => tag.trim()) });
         localStorage.setItem('photos', JSON.stringify(photos));
+        // Notify parent window (dashboard) to refresh photos
+        window.parent.location.reload();
     };
     reader.readAsDataURL(file);
 }

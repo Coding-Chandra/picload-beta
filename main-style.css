@@ -98,9 +98,13 @@ header .search-bar {
 
 .branding-logo {
     display: none;
-    width: 32px;
     height: 32px;
 }
+
+@media (max-width: 500px) {
+    .branding-logo {
+        display: block;
+    }
 
 @media (max-width: 500px) {
     header .search-bar {

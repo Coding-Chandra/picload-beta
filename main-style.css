@@ -170,8 +170,6 @@ header .admin-link a:active,
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-  box-shadow:0 0 0 2px rgba(255,255,255,.6),0 16px 32px rgba(0,0,0,.12);
-  backdrop-filter:url(#frosted);-webkit-backdrop-filter:url(#frosted);
 }
 
 .category-filter::after{transform:rotate(90deg)}

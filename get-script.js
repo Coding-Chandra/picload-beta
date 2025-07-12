@@ -165,6 +165,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function setTextColorBasedOnBackground(element) {
+        const bgColor = window.getComputedStyle(element).backgroundColor;
+
+        // Extract RGB values
+        const rgb = bgColor.match(/\d+/g).map(Number);
+        const [r, g, b] = rgb;
+
+        // Calculate luminance (perceived brightness)
+        const luminance = (0.299*r + 0.587*g + 0.114*b);
+
+        // Choose text color based on luminance
+        const textColor = luminance > 186 ? 'black' : 'white';
+        
+        element.style.color = textColor;
+    }
+
     function sortImages(images, sortBy) {
         const sorted = [...images];
         switch (sortBy) {

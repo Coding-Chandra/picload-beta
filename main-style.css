@@ -192,10 +192,12 @@ header .admin-link a:active,
     font-weight: 500;
     color: #555;
     cursor: pointer;
-    transition: all 0.3s ease;
     flex-shrink: 0;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
     backdrop-filter: blur(18px);
-    text-transform: capitalize;
+    filter: url(#lg-dist);
+    isolation: isolate;
 }
 .filter-btn:hover {
     background: #f0f0f0;

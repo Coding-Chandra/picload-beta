@@ -191,7 +191,7 @@ header .admin-link a:active,
     border-radius: 50px;
     font-size: 0.9rem;
     font-weight: 500;
-    color: #0099FF;
+    color: #555;
     cursor: pointer;
     flex-shrink: 0;
     box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);

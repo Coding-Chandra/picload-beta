@@ -160,7 +160,7 @@ header .admin-link a:active,
     position: sticky;
     top: 0;
     background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(8px);
     padding: 0.5rem 2rem;
     z-index: 20;
     display: flex;
@@ -194,6 +194,7 @@ header .admin-link a:active,
     cursor: pointer;
     transition: all 0.3s ease;
     flex-shrink: 0;
+    backdrop-filter: blur(18px);
     text-transform: capitalize;
 }
 .filter-btn:hover {

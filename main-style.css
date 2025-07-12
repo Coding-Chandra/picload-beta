@@ -159,8 +159,8 @@ header .admin-link a:active,
 .category-filter {
     position: sticky;
     top: 0;
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
     padding: 0.5rem 2rem;
     z-index: 20;
     display: flex;

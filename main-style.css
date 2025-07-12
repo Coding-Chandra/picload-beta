@@ -194,6 +194,7 @@ header .admin-link a:active,
     color: #555;
     cursor: pointer;
     flex-shrink: 0;
+    transition: color 0.3s ease;
     box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
     backdrop-filter: blur(18px);

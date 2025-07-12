@@ -165,21 +165,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function setTextColorBasedOnBackground(element) {
+    function getLuminance(r, g, b) {
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+    }
+
+    function updateTextColorBasedOnBackground(element) {
         const bgColor = window.getComputedStyle(element).backgroundColor;
+        const rgb = bgColor.match(/\d+/g);
 
-        // Extract RGB values
-        const rgb = bgColor.match(/\d+/g).map(Number);
-        const [r, g, b] = rgb;
+        if (!rgb || rgb.length < 3) return;
 
-        // Calculate luminance (perceived brightness)
-        const luminance = (0.299*r + 0.587*g + 0.114*b);
+        const [r, g, b] = rgb.map(Number);
+        const luminance = getLuminance(r, g, b);
+        const textColor = luminance > 186 ? '#000' : '#fff';
 
-        // Choose text color based on luminance
-        const textColor = luminance > 186 ? 'black' : 'white';
-        
         element.style.color = textColor;
     }
+
+    // Apply to all filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        updateTextColorBasedOnBackground(btn)
+        ;}
+    );
 
     function sortImages(images, sortBy) {
         const sorted = [...images];
